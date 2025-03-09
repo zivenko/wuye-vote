@@ -1,0 +1,195 @@
+.app {
+  background-color: #f5f5f5;
+}
+
+.header {
+  background-color: #fff;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  font-weight: bold;
+}
+
+.title {
+  font-size: 52rpx;
+  flex-grow: 1;
+
+}
+
+.help-button {
+  background: none;
+  border: none;
+  font-size: 32rpx;
+  cursor: pointer;
+  color: #333;
+  margin-left: auto;
+  text-align: right;
+}
+
+
+.search-container {
+  background-color: #fff;
+  padding: 40rpx 50rpx;
+  border-radius: 10rpx;
+  box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  font-size: 28rpx;
+  color: #999;
+  margin-right: 10rpx;
+}
+
+.search-input {
+  width: 100%;
+  padding: 15rpx;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+  background-color: #f5f5f5;
+  height: 70rpx;
+  line-height: 35rpx;
+}
+
+.notification {
+  background-color: #e0f7fa;
+  color: #007aff;
+  text-align: center;
+  padding: 20rpx;
+  border-radius: 10rpx;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+}
+
+.tabs-wrapper {
+  background: #fff;
+  padding: 20rpx 10rpx;
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  border-radius: 10rpx;
+  margin: 20rpx 10rpx;
+  overflow: hidden;
+  background-color: #fff;
+  
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 15rpx 0;
+  font-size: 28rpx;
+  color: #007aff;
+  border: 3rpx solid #007aff;
+  border-left: none;
+  transition: background-color 0.3s;
+}
+
+.tab-item:first-child {
+  border-left: 1rpx solid #007aff;
+}
+
+.active {
+  background-color: #007aff;
+  color: #fff;
+}
+
+.card-list {
+    height: 100vh; /* 设置高度以便滚动 */
+    padding: 30rpx;
+    box-sizing: border-box;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 20rpx;
+  padding: 20rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.card-info {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-status {
+  display: inline-block;
+  padding: 5rpx 10rpx;
+  border-radius: 5rpx;
+  font-size: 24rpx;
+  margin-bottom: 10rpx;
+}
+
+.ongoing {
+  background-color: #e6f2ff;
+  color: #007aff;
+}
+
+.ended {
+  background-color: #ccc;
+  color: #fff;
+}
+
+.card-action {
+  font-size: 28rpx;
+  color: #fff;
+  background-color: #007aff;
+  border: none;
+  padding: 15rpx 30rpx;
+  border-radius: 5rpx;
+  cursor: pointer;
+  text-align: center;
+  margin-left: auto; /* 确保按钮靠右 */
+  display: inline-block;
+}
+
+
+
+.vote-item button {
+  background-color: #007aff;
+  color: #fff;
+  border: none;
+  padding: 15rpx 30rpx;
+  border-radius: 5rpx;
+  cursor: pointer;
+  font-size: 24rpx;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-around;
+  background-color: #f0f0f0;
+  padding: 10rpx 0;
+}
+
+.footer button {
+  background: none;
+  border: none;
+  color: #007aff;
+  font-size: 16rpx;
+  cursor: pointer;
+}

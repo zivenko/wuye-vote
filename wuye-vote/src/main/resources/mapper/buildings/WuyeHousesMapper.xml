@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.wuye.mapper.buildings.WuyeHousesMapper">
+
+    <resultMap type="WuyeHouses" id="WuyeHousesResult">
+        <result property="houseId"    column="house_id"    />
+        <result property="districtId"    column="district_id"    />
+        <result property="buildingId"    column="building_id"    />
+        <result property="unitId"    column="unit_id"    />
+        <result property="roomNumber"    column="room_number"    />
+        <result property="area"    column="area"    />
+        <result property="type"    column="type"    />
+        <result property="houseNumber"    column="house_number"    />
+        <result property="ownerNames"    column="owner_names"    />
+        <result property="ownerMobiles"    column="owner_mobiles"    />
+        <result property="ownerIdNumbers"    column="owner_id_numbers"    />
+        <result property="isBind"    column="is_bind"    />
+    </resultMap>
+
+    <sql id="selectWuyeHousesVo">
+        select house_id, district_id, building_id, unit_id, room_number, area, type, house_number, owner_names, owner_mobiles, owner_id_numbers, is_bind from wuye_houses
+    </sql>
+
+    <select id="selectWuyeHousesList" parameterType="WuyeHouses" resultMap="WuyeHousesResult">
+        <include refid="selectWuyeHousesVo"/>
+        <where>
+            <if test="districtId != null "> and district_id = #{districtId}</if>
+            <if test="buildingId != null "> and building_id = #{buildingId}</if>
+            <if test="unitId != null "> and unit_id = #{unitId}</if>
+            <if test="roomNumber != null  and roomNumber != ''"> and room_number = #{roomNumber}</if>
+            <if test="area != null "> and area = #{area}</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
+            <if test="houseNumber != null  and houseNumber != ''"> and house_number = #{houseNumber}</if>
+            <if test="ownerNames != null  and ownerNames != ''"> and owner_names = #{ownerNames}</if>
+            <if test="ownerMobiles != null  and ownerMobiles != ''"> and owner_mobiles = #{ownerMobiles}</if>
+            <if test="ownerIdNumbers != null  and ownerIdNumbers != ''"> and owner_id_numbers = #{ownerIdNumbers}</if>
+            <if test="isBind != null "> and is_bind = #{isBind}</if>
+        </where>
+    </select>
+
+    <select id="selectWuyeHousesByHouseId" parameterType="Long" resultMap="WuyeHousesResult">
+        <include refid="selectWuyeHousesVo"/>
+        where house_id = #{houseId}
+    </select>
+
+    <insert id="insertWuyeHouses" parameterType="WuyeHouses" useGeneratedKeys="true" keyProperty="houseId">
+        insert into wuye_houses
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="districtId != null">district_id,</if>
+            <if test="buildingId != null">building_id,</if>
+            <if test="unitId != null">unit_id,</if>
+            <if test="roomNumber != null">room_number,</if>
+            <if test="area != null">area,</if>
+            <if test="type != null">type,</if>
+            <if test="houseNumber != null">house_number,</if>
+            <if test="ownerNames != null">owner_names,</if>
+            <if test="ownerMobiles != null">owner_mobiles,</if>
+            <if test="ownerIdNumbers != null">owner_id_numbers,</if>
+            <if test="isBind != null">is_bind,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="districtId != null">#{districtId},</if>
+            <if test="buildingId != null">#{buildingId},</if>
+            <if test="unitId != null">#{unitId},</if>
+            <if test="roomNumber != null">#{roomNumber},</if>
+            <if test="area != null">#{area},</if>
+            <if test="type != null">#{type},</if>
+            <if test="houseNumber != null">#{houseNumber},</if>
+            <if test="ownerNames != null">#{ownerNames},</if>
+            <if test="ownerMobiles != null">#{ownerMobiles},</if>
+            <if test="ownerIdNumbers != null">#{ownerIdNumbers},</if>
+            <if test="isBind != null">#{isBind},</if>
+        </trim>
+    </insert>
+
+    <update id="updateWuyeHouses" parameterType="WuyeHouses">
+        update wuye_houses
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="districtId != null">district_id = #{districtId},</if>
+            <if test="buildingId != null">building_id = #{buildingId},</if>
+            <if test="unitId != null">unit_id = #{unitId},</if>
+            <if test="roomNumber != null">room_number = #{roomNumber},</if>
+            <if test="area != null">area = #{area},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="houseNumber != null">house_number = #{houseNumber},</if>
+            <if test="ownerNames != null">owner_names = #{ownerNames},</if>
+            <if test="ownerMobiles != null">owner_mobiles = #{ownerMobiles},</if>
+            <if test="ownerIdNumbers != null">owner_id_numbers = #{ownerIdNumbers},</if>
+            <if test="isBind != null">is_bind = #{isBind},</if>
+        </trim>
+        where house_id = #{houseId}
+    </update>
+
+    <delete id="deleteWuyeHousesByHouseId" parameterType="Long">
+        delete from wuye_houses where house_id = #{houseId}
+    </delete>
+
+    <delete id="deleteWuyeHousesByHouseIds" parameterType="String">
+        delete from wuye_houses where house_id in
+        <foreach item="houseId" collection="array" open="(" separator="," close=")">
+            #{houseId}
+        </foreach>
+    </delete>
+</mapper>

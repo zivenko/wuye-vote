@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.wuye.mapper.buildings.WuyeHouseBindCheckMapper">
+    
+    <resultMap type="WuyeHouseBindCheck" id="WuyeHouseBindCheckResult">
+        <result property="checkId"    column="check_id"    />
+        <result property="appletId"    column="applet_id"    />
+        <result property="houseId"    column="house_id"    />
+        <result property="certificate"    column="certificate"    />
+        <result property="checkStatus"    column="check_status"    />
+        <result property="checkErrorMsg"    column="check_error_msg"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="checkTime"    column="check_time"    />
+        <result property="userId"    column="user_id"    />
+    </resultMap>
+
+    <sql id="selectWuyeHouseBindCheckVo">
+        select check_id, applet_id, house_id, certificate, check_status, check_error_msg, create_time, check_time, user_id from wuye_house_bind_check
+    </sql>
+
+    <select id="selectWuyeHouseBindCheckList" parameterType="WuyeHouseBindCheck" resultMap="WuyeHouseBindCheckResult">
+        <include refid="selectWuyeHouseBindCheckVo"/>
+        <where>  
+            <if test="appletId != null "> and applet_id = #{appletId}</if>
+            <if test="houseId != null "> and house_id = #{houseId}</if>
+            <if test="certificate != null  and certificate != ''"> and certificate = #{certificate}</if>
+            <if test="checkStatus != null  and checkStatus != ''"> and check_status = #{checkStatus}</if>
+            <if test="checkErrorMsg != null  and checkErrorMsg != ''"> and check_error_msg = #{checkErrorMsg}</if>
+            <if test="checkTime != null "> and check_time = #{checkTime}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+        </where>
+    </select>
+    
+    <select id="selectWuyeHouseBindCheckByCheckId" parameterType="Long" resultMap="WuyeHouseBindCheckResult">
+        <include refid="selectWuyeHouseBindCheckVo"/>
+        where check_id = #{checkId}
+    </select>
+
+    <insert id="insertWuyeHouseBindCheck" parameterType="WuyeHouseBindCheck" useGeneratedKeys="true" keyProperty="checkId">
+        insert into wuye_house_bind_check
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="appletId != null">applet_id,</if>
+            <if test="houseId != null">house_id,</if>
+            <if test="certificate != null">certificate,</if>
+            <if test="checkStatus != null">check_status,</if>
+            <if test="checkErrorMsg != null">check_error_msg,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="checkTime != null">check_time,</if>
+            <if test="userId != null">user_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="appletId != null">#{appletId},</if>
+            <if test="houseId != null">#{houseId},</if>
+            <if test="certificate != null">#{certificate},</if>
+            <if test="checkStatus != null">#{checkStatus},</if>
+            <if test="checkErrorMsg != null">#{checkErrorMsg},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="checkTime != null">#{checkTime},</if>
+            <if test="userId != null">#{userId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWuyeHouseBindCheck" parameterType="WuyeHouseBindCheck">
+        update wuye_house_bind_check
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="appletId != null">applet_id = #{appletId},</if>
+            <if test="houseId != null">house_id = #{houseId},</if>
+            <if test="certificate != null">certificate = #{certificate},</if>
+            <if test="checkStatus != null">check_status = #{checkStatus},</if>
+            <if test="checkErrorMsg != null">check_error_msg = #{checkErrorMsg},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="checkTime != null">check_time = #{checkTime},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+        </trim>
+        where check_id = #{checkId}
+    </update>
+
+    <delete id="deleteWuyeHouseBindCheckByCheckId" parameterType="Long">
+        delete from wuye_house_bind_check where check_id = #{checkId}
+    </delete>
+
+    <delete id="deleteWuyeHouseBindCheckByCheckIds" parameterType="String">
+        delete from wuye_house_bind_check where check_id in 
+        <foreach item="checkId" collection="array" open="(" separator="," close=")">
+            #{checkId}
+        </foreach>
+    </delete>
+</mapper>

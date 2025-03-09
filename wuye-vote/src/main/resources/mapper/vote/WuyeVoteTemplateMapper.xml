@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.wuye.mapper.vote.WuyeVoteTemplateMapper">
+
+    <resultMap type="WuyeVoteTemplate" id="WuyeVoteTemplateResult">
+        <result property="templateId"    column="template_id"    />
+        <result property="title"    column="title"    />
+        <result property="description"    column="description"    />
+        <result property="choices"    column="choices"    />
+        <result property="voteTimes"    column="vote_times"    />
+        <result property="rule"    column="rule"    />
+        <result property="communityIds"    column="community_ids"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="voteCount"    column="vote_count"    />
+    </resultMap>
+
+    <sql id="selectWuyeVoteTemplateVo">
+        select t.template_id, t.title, t.description, t.choices, t.vote_times, t.rule, t.community_ids, 
+        t.start_time, t.end_time, t.create_time, t.update_time, t.create_by,
+        COUNT(DISTINCT r.applet_id) as vote_count
+        from wuye_vote_template t
+        LEFT JOIN wuye_vote_record r ON t.template_id = r.template_id AND r.status = 1
+    </sql>
+
+    <select id="selectWuyeVoteTemplateList" parameterType="WuyeVoteTemplate" resultMap="WuyeVoteTemplateResult">
+        <include refid="selectWuyeVoteTemplateVo"/>
+        <where>
+            <if test="title != null  and title != ''"> and t.title like concat('%', #{title}, '%')</if>
+            <if test="description != null  and description != ''"> and t.description like concat('%', #{description}, '%')</if>
+            <if test="choices != null  and choices != ''"> and t.choices like concat('%', #{choices}, '%')</if>
+            <if test="voteTimes != null "> and t.vote_times = #{voteTimes}</if>
+            <if test="rule != null  and rule != ''"> and t.rule like concat('%', #{rule}, '%')</if>
+            <if test="communityIds != null  and communityIds != ''"> and t.community_ids like concat('%', #{communityIds}, '%')</if>
+            <if test="status != null and status != -1">
+                <choose>
+                    <when test="status == 0">
+                        and t.start_time > CURDATE()
+                    </when>
+                    <when test="status == 1">
+                        and t.start_time &lt;= CURDATE() and t.end_time >= CURDATE()
+                    </when>
+                    <when test="status == 2">
+                        and t.end_time &lt; CURDATE()
+                    </when>
+                </choose>
+            </if>
+        </where>
+        GROUP BY t.template_id
+        order by t.create_time desc
+    </select>
+
+    <select id="selectWuyeVoteTemplateByTemplateId" parameterType="Long" resultMap="WuyeVoteTemplateResult">
+        <include refid="selectWuyeVoteTemplateVo"/>
+        where t.template_id = #{templateId}
+        GROUP BY t.template_id
+    </select>
+
+    <insert id="insertWuyeVoteTemplate" parameterType="WuyeVoteTemplate" useGeneratedKeys="true" keyProperty="templateId">
+        insert into wuye_vote_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null">title,</if>
+            <if test="description != null">description,</if>
+            <if test="choices != null">choices,</if>
+            <if test="voteTimes != null">vote_times,</if>
+            <if test="rule != null">rule,</if>
+            <if test="communityIds != null">community_ids,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="createBy != null">create_by,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null">#{title},</if>
+            <if test="description != null">#{description},</if>
+            <if test="choices != null">#{choices},</if>
+            <if test="voteTimes != null">#{voteTimes},</if>
+            <if test="rule != null">#{rule},</if>
+            <if test="communityIds != null">#{communityIds},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+        </trim>
+    </insert>
+
+    <update id="updateWuyeVoteTemplate" parameterType="WuyeVoteTemplate">
+        update wuye_vote_template
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="choices != null">choices = #{choices},</if>
+            <if test="voteTimes != null">vote_times = #{voteTimes},</if>
+            <if test="rule != null">rule = #{rule},</if>
+            <if test="communityIds != null">community_ids = #{communityIds},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+        </trim>
+        where template_id = #{templateId}
+    </update>
+
+    <delete id="deleteWuyeVoteTemplateByTemplateId" parameterType="Long">
+        delete from wuye_vote_template where template_id = #{templateId}
+    </delete>
+
+    <delete id="deleteWuyeVoteTemplateByTemplateIds" parameterType="String">
+        delete from wuye_vote_template where template_id in
+        <foreach item="templateId" collection="array" open="(" separator="," close=")">
+            #{templateId}
+        </foreach>
+    </delete>
+
+    <!-- 查询用户可参与的投票模板列表 -->
+    <select id="selectUserVoteTemplateList" parameterType="Long" resultMap="WuyeVoteTemplateResult">
+        SELECT DISTINCT t.*, COUNT(DISTINCT r.applet_id) as vote_count
+        FROM wuye_vote_template t
+        INNER JOIN wuye_applet_users u ON u.applet_id = #{appletId}
+        INNER JOIN wuye_houses h ON FIND_IN_SET(h.house_id, u.house_ids)
+        LEFT JOIN wuye_vote_record r ON t.template_id = r.template_id AND r.status = 1
+        WHERE FIND_IN_SET(h.district_id, t.community_ids)
+        <if test="_parameter != null">
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    t.title LIKE CONCAT('%', #{keyword}, '%')
+                    OR t.description LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="status != null and status != -1">
+                <choose>
+                    <when test="status == 0">
+                        AND t.start_time &lt;= CURDATE() AND t.end_time >= CURDATE()
+                    </when>
+                    <when test="status == 1">
+                        AND t.end_time &lt; CURDATE()
+                    </when>
+                    <when test="status == 2">
+                        AND t.start_time > CURDATE()
+                    </when>
+                </choose>
+            </if>
+        </if>
+        GROUP BY t.template_id
+        ORDER BY t.create_time DESC
+    </select>
+</mapper>

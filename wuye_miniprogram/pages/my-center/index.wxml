@@ -1,0 +1,15 @@
+
+<view class="profile">
+  <van-image
+    round
+    width="6rem"
+    height="6rem"
+    src="https://img.yzcdn.cn/vant/cat.jpeg"
+  />
+  <text class="username">用户名</text>
+</view>
+<van-cell-group inset border="{{false}}">
+  <van-cell size="large" title="业主信息" url="/pages/personal-info/index" is-link />
+  <van-cell size="large" title="我的房屋" url="/pages/my-house/index" is-link />
+</van-cell-group>
+

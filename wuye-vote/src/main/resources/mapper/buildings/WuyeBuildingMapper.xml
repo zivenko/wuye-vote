@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.wuye.mapper.buildings.WuyeBuildingMapper">
+    
+    <resultMap type="WuyeBuilding" id="WuyeBuildingResult">
+        <result property="id"    column="id"    />
+        <result property="pid"    column="pid"    />
+        <result property="name"    column="name"    />
+        <result property="address"    column="address"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="level"    column="level"    />
+    </resultMap>
+
+    <sql id="selectWuyeBuildingVo">
+        select id, pid, name, address, create_time, update_time, level from wuye_building
+    </sql>
+
+    <select id="selectWuyeBuildingList" parameterType="WuyeBuilding" resultMap="WuyeBuildingResult">
+        <include refid="selectWuyeBuildingVo"/>
+        <where>  
+            <if test="pid != null "> and pid = #{pid}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="address != null  and address != ''"> and address = #{address}</if>
+            <if test="level != null "> and level = #{level}</if>
+        </where>
+    </select>
+    
+    <select id="selectWuyeBuildingById" parameterType="Long" resultMap="WuyeBuildingResult">
+        <include refid="selectWuyeBuildingVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertWuyeBuilding" parameterType="WuyeBuilding" useGeneratedKeys="true" keyProperty="id">
+        insert into wuye_building
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="pid != null">pid,</if>
+            <if test="name != null">name,</if>
+            <if test="address != null">address,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="level != null">level,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="pid != null">#{pid},</if>
+            <if test="name != null">#{name},</if>
+            <if test="address != null">#{address},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="level != null">#{level},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWuyeBuilding" parameterType="WuyeBuilding">
+        update wuye_building
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="pid != null">pid = #{pid},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="address != null">address = #{address},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="level != null">level = #{level},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteWuyeBuildingById" parameterType="Long">
+        delete from wuye_building where id = #{id}
+    </delete>
+
+    <delete id="deleteWuyeBuildingByIds" parameterType="String">
+        delete from wuye_building where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

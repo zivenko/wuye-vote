@@ -1,0 +1,42 @@
+.cards {
+    height: 100vh;
+}
+.card {
+    background-color: #fff;
+    border-radius: 20rpx;
+    padding: 32rpx;
+    box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.1);
+    margin: 32rpx;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8rpx;
+  }
+  
+  .title {
+    margin-top: 10rpx;
+    font-weight: bold;
+    font-size: 40rpx;
+  }
+  
+  .participants {
+    color: #666;
+  }
+  
+  .details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16rpx;
+  }
+  
+  .date {
+    color: #666;
+  }
+  
+  .status {
+    margin: 30rpx 0;
+  }

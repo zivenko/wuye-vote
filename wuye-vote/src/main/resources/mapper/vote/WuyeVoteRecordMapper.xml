@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.wuye.mapper.vote.WuyeVoteRecordMapper">
+    
+    <resultMap type="WuyeVoteRecord" id="WuyeVoteRecordResult">
+        <result property="voteId"    column="vote_id"    />
+        <result property="appletId"    column="applet_id"    />
+        <result property="templateId"    column="template_id"    />
+        <result property="choices"    column="choices"    />
+        <result property="voteTime"    column="vote_time"    />
+        <result property="status"    column="status"    />
+        <result property="byAdmin"    column="by_admin"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectWuyeVoteRecordVo">
+        select vote_id, applet_id, template_id, choices, vote_time, status, by_admin, create_time, update_time from wuye_vote_record
+    </sql>
+
+    <select id="selectWuyeVoteRecordList" parameterType="WuyeVoteRecord" resultMap="WuyeVoteRecordResult">
+        <include refid="selectWuyeVoteRecordVo"/>
+        <where>  
+            <if test="appletId != null "> and applet_id = #{appletId}</if>
+            <if test="templateId != null "> and template_id = #{templateId}</if>
+            <if test="choices != null  and choices != ''"> and choices = #{choices}</if>
+            <if test="voteTime != null "> and vote_time = #{voteTime}</if>
+            <if test="status != null "> and status = #{status}</if>
+            <if test="byAdmin != null "> and by_admin = #{byAdmin}</if>
+        </where>
+    </select>
+    
+    <select id="selectWuyeVoteRecordByVoteId" parameterType="Long" resultMap="WuyeVoteRecordResult">
+        <include refid="selectWuyeVoteRecordVo"/>
+        where vote_id = #{voteId}
+    </select>
+
+    <insert id="insertWuyeVoteRecord" parameterType="WuyeVoteRecord" useGeneratedKeys="true" keyProperty="voteId">
+        insert into wuye_vote_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="appletId != null">applet_id,</if>
+            <if test="templateId != null">template_id,</if>
+            <if test="choices != null and choices != ''">choices,</if>
+            <if test="voteTime != null">vote_time,</if>
+            <if test="status != null">status,</if>
+            <if test="byAdmin != null">by_admin,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="appletId != null">#{appletId},</if>
+            <if test="templateId != null">#{templateId},</if>
+            <if test="choices != null and choices != ''">#{choices},</if>
+            <if test="voteTime != null">#{voteTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="byAdmin != null">#{byAdmin},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWuyeVoteRecord" parameterType="WuyeVoteRecord">
+        update wuye_vote_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="appletId != null">applet_id = #{appletId},</if>
+            <if test="templateId != null">template_id = #{templateId},</if>
+            <if test="choices != null and choices != ''">choices = #{choices},</if>
+            <if test="voteTime != null">vote_time = #{voteTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="byAdmin != null">by_admin = #{byAdmin},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where vote_id = #{voteId}
+    </update>
+
+    <delete id="deleteWuyeVoteRecordByVoteId" parameterType="Long">
+        delete from wuye_vote_record where vote_id = #{voteId}
+    </delete>
+
+    <delete id="deleteWuyeVoteRecordByVoteIds" parameterType="String">
+        delete from wuye_vote_record where vote_id in 
+        <foreach item="voteId" collection="array" open="(" separator="," close=")">
+            #{voteId}
+        </foreach>
+    </delete>
+</mapper>

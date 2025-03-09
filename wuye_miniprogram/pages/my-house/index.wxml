@@ -1,0 +1,28 @@
+<button class="add-house" bindtap="onAddHouse">
+    <text class="plus">+</text>
+    <text>添加房屋</text>
+</button>
+<view class="container">
+  <view class="house-list">
+    <view class="house-item" wx:for="{{houseList}}" wx:key="index" bindtap="onHouseClick" data-id="{{item.id}}">
+      <view class="status-bar">
+        <text class="time">提交时间: {{item.time}}</text>
+        <text class="status">{{item.status}}</text>
+      </view>
+      <view class="house-info">
+        <view class="house-title">{{item.title}}</view>
+        <view class="house-type">{{item.type}}</view>
+      </view>
+      <view class="house-image">
+        <image src="{{item.image}}" mode="aspectFill"></image>
+      </view>
+      <view class="house-details">
+        <view class="house-area">
+          <text>房屋专有部分面积</text>
+          <text>{{item.size}}m²</text>
+        </view>
+        <view class="house-desc">{{item.description}}</view>
+      </view>
+    </view>
+  </view>
+</view>

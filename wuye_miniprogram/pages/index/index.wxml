@@ -1,0 +1,83 @@
+<view class="app">
+    <!-- 头部 -->
+    <view class="header">
+        <text class="title">业主大会投票</text>
+        <van-icon size="30px" name="question-o" />
+    </view>
+    <!-- 搜索 -->
+    <view class="search-bar">
+        <van-search 
+            value="{{ value }}" 
+            placeholder="请输入搜索关键词" 
+            bind:change="onSearch"
+            bind:search="onSearch"
+            bind:clear="onSearch"
+            show-action
+            action-text="搜索"
+            bind:cancel="onCancel"
+        />
+    </view>
+    <!-- 公告 -->
+    <van-notice-bar
+      color="#1989fa"
+      background="#ecf9ff"
+      left-icon="volume-o"
+      text="有新的投票可以参与！"
+    />
+    <!-- 卡片展示 -->
+    <van-tabs type="card" 
+      color="#007aff"
+      active="{{ activeTab }}" 
+      swipeable
+      animated
+      bind:change="onChange" 
+    >
+      <van-tab title="全部">
+        <scroll-view class="card-list" scroll-y="true">
+            <!-- 投票列表 -->
+            <view class="card" wx:for="{{filteredVoteList}}" wx:key="templateId">
+              <view class="card-title">{{item.title}}</view>
+              <view class="card-info">截止日期：{{item.endTime}}  参与人数：{{item.voteCount || 0}}</view>
+              <view class="card-footer">
+                <view class="card-status {{item.status === 1 ? 'ongoing' : item.status === 0 ? 'not-started' : 'ended'}}">
+                  {{item.status === 1 ? '进行中' : item.status === 0 ? '未开始' : '已结束'}}
+                </view>
+                <view class="card-action" bindtap="toVoting" data-id="{{item.templateId}}">参与投票</view>
+              </view>
+            </view>
+        </scroll-view>
+      </van-tab>
+
+      <van-tab title="进行中">
+        <scroll-view class="card-list" scroll-y="true">
+            <!-- 投票列表 -->
+            <view class="card" wx:for="{{filteredVoteList}}" wx:key="templateId">
+              <view class="card-title">{{item.title}}</view>
+              <view class="card-info">截止日期：{{item.endTime}}  参与人数：{{item.voteCount || 0}}</view>
+              <view class="card-footer">
+                <view class="card-status {{item.status === 1 ? 'ongoing' : item.status === 0 ? 'not-started' : 'ended'}}">
+                  {{item.status === 1 ? '进行中' : item.status === 0 ? '未开始' : '已结束'}}
+                </view>
+                <view class="card-action" bindtap="toVoting" data-id="{{item.templateId}}">参与投票</view>
+              </view>
+            </view>
+        </scroll-view>
+      </van-tab>
+      <van-tab title="已结束">
+        <scroll-view class="card-list" scroll-y="true">
+            <!-- 投票列表 -->
+            <view class="card" wx:for="{{filteredVoteList}}" wx:key="templateId">
+                <view class="card-title">{{item.title}}</view>
+                <view class="card-info">截止日期：{{item.endTime}}  参与人数：{{item.voteCount || 0}}</view>
+                <view class="card-footer">
+                  <view class="card-status {{item.status === 1 ? 'ongoing' : item.status === 0 ? 'not-started' : 'ended'}}">
+                    {{item.status === 1 ? '进行中' : item.status === 0 ? '未开始' : '已结束'}}
+                  </view>
+                  <view class="card-action" bindtap="toVoting" data-id="{{item.templateId}}">{{item.status === 2 ? '查看结果' : '参与投票'}}</view>
+                </view>
+            </view>
+        </scroll-view>
+      </van-tab>
+    </van-tabs>
+
+</view>

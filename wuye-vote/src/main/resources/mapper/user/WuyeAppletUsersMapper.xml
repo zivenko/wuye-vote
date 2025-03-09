@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.wuye.mapper.user.WuyeAppletUsersMapper">
+    
+    <resultMap type="WuyeAppletUsers" id="WuyeAppletUsersResult">
+        <result property="appletId"    column="applet_id"    />
+        <result property="nikeName"    column="nike_name"    />
+        <result property="openid"    column="openid"    />
+        <result property="avatar"    column="avatar"    />
+        <result property="name"    column="name"    />
+        <result property="mobile"    column="mobile"    />
+        <result property="idNumber"    column="id_number"    />
+        <result property="houseIds"    column="house_ids"    />
+    </resultMap>
+
+    <sql id="selectWuyeAppletUsersVo">
+        select applet_id, nike_name, openid, avatar, name, mobile, id_number, house_ids from wuye_applet_users
+    </sql>
+
+    <select id="selectWuyeAppletUsersList" parameterType="WuyeAppletUsers" resultMap="WuyeAppletUsersResult">
+        <include refid="selectWuyeAppletUsersVo"/>
+        <where>  
+            <if test="nikeName != null  and nikeName != ''"> and nike_name like concat('%', #{nikeName}, '%')</if>
+            <if test="openid != null  and openid != ''"> and openid = #{openid}</if>
+            <if test="avatar != null  and avatar != ''"> and avatar = #{avatar}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="mobile != null  and mobile != ''"> and mobile = #{mobile}</if>
+            <if test="idNumber != null  and idNumber != ''"> and id_number = #{idNumber}</if>
+            <if test="houseIds != null  and houseIds != ''"> and house_ids = #{houseIds}</if>
+        </where>
+    </select>
+    
+    <select id="selectWuyeAppletUsersByAppletId" parameterType="Long" resultMap="WuyeAppletUsersResult">
+        <include refid="selectWuyeAppletUsersVo"/>
+        where applet_id = #{appletId}
+    </select>
+
+    <insert id="insertWuyeAppletUsers" parameterType="WuyeAppletUsers" useGeneratedKeys="true" keyProperty="appletId">
+        insert into wuye_applet_users
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="nikeName != null">nike_name,</if>
+            <if test="openid != null">openid,</if>
+            <if test="avatar != null">avatar,</if>
+            <if test="name != null">name,</if>
+            <if test="mobile != null">mobile,</if>
+            <if test="idNumber != null">id_number,</if>
+            <if test="houseIds != null">house_ids,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="nikeName != null">#{nikeName},</if>
+            <if test="openid != null">#{openid},</if>
+            <if test="avatar != null">#{avatar},</if>
+            <if test="name != null">#{name},</if>
+            <if test="mobile != null">#{mobile},</if>
+            <if test="idNumber != null">#{idNumber},</if>
+            <if test="houseIds != null">#{houseIds},</if>
+         </trim>
+    </insert>
+
+    <update id="updateWuyeAppletUsers" parameterType="WuyeAppletUsers">
+        update wuye_applet_users
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="nikeName != null">nike_name = #{nikeName},</if>
+            <if test="openid != null">openid = #{openid},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="mobile != null">mobile = #{mobile},</if>
+            <if test="idNumber != null">id_number = #{idNumber},</if>
+            <if test="houseIds != null">house_ids = #{houseIds},</if>
+        </trim>
+        where applet_id = #{appletId}
+    </update>
+
+    <delete id="deleteWuyeAppletUsersByAppletId" parameterType="Long">
+        delete from wuye_applet_users where applet_id = #{appletId}
+    </delete>
+
+    <delete id="deleteWuyeAppletUsersByAppletIds" parameterType="String">
+        delete from wuye_applet_users where applet_id in 
+        <foreach item="appletId" collection="array" open="(" separator="," close=")">
+            #{appletId}
+        </foreach>
+    </delete>
+</mapper>

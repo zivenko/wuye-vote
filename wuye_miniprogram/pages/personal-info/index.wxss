@@ -1,0 +1,5 @@
+/* pages/personal-info/index.wxss */
+page {
+    padding-top: 40rpx;
+    background-color: #f5f5f5;
+}

@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "我的投票",
+  "usingComponents": {
+    "van-tab": "@vant/weapp/tab/index",
+    "van-tabs": "@vant/weapp/tabs/index",
+    "van-search": "@vant/weapp/search/index",
+    "van-button": "@vant/weapp/button/index",
+    "van-tag": "@vant/weapp/tag/index"
+  }
+}

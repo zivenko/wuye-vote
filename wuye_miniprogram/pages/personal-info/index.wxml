@@ -1,0 +1,8 @@
+<van-cell-group inset>
+  <van-cell title="证件类型" value="身份证号" is-link />
+  <van-cell title="证件号" value="4401********">
+    <view style="margin-left: 10rpx;" slot="right-icon">
+     <van-icon name="edit" />
+    </view>
+  </van-cell>
+</van-cell-group>
