@@ -214,7 +214,7 @@
         </template>
       </el-table-column>
     </el-table>
-
+    
     <pagination
       v-show="total>0"
       :total="total"
@@ -409,7 +409,7 @@ export default {
       districtOptions: [],
       buildingOptions: [],
       unitOptions: [],
-
+      
       // 上传参数
       upload: {
         open: false,
@@ -418,13 +418,13 @@ export default {
         headers: { Authorization: 'Bearer ' + getToken() },
         isUploading: false
       },
-
+      
       // Excel相关配置
       excel: {
         headers: ['小区', '楼栋', '单元', '房号', '业主姓名', '手机号', '身份证号码', '建筑面积', '物业类型', '房屋编号'],
         headerKey: ['districtName', 'buildingName', 'unitName', 'roomNumber', 'ownerNames', 'ownerMobiles', 'ownerIdNumbers', 'area', 'type', 'houseNumber']
       },
-
+      
       // 物业类型选项
       propertyTypes: [
         { label: '高层', value: '高层' },
@@ -453,14 +453,14 @@ export default {
             // 获取所有单元数据
             listBuilding({ level: 3 }).then(unitRes => {
               const units = unitRes.rows
-
+              
               // 转换数据
               this.housesList = response.rows.map(item => {
                 // 查找对应的小区、楼栋、单元
                 const district = districts.find(d => d.id === item.districtId)
                 const building = buildings.find(b => b.id === item.buildingId)
                 const unit = units.find(u => u.id === item.unitId)
-
+                
                 return {
                   ...item,
                   districtName: district ? district.name : '',
@@ -568,20 +568,20 @@ export default {
               return
             }
 
-            // 创建一个新对象来存储要提交的数据
-            const submitData = {
-              ...this.form,
-              districtId: this.form.districtId,
-              buildingId: this.form.buildingId,
-              unitId: this.form.unitId
+          // 创建一个新对象来存储要提交的数据
+          const submitData = {
+            ...this.form,
+            districtId: this.form.districtId,
+            buildingId: this.form.buildingId,
+            unitId: this.form.unitId
             }
 
-            if (this.form.houseId != null) {
+          if (this.form.houseId != null) {
               await updateHouses(submitData)
               this.$modal.msgSuccess('修改成功')
               this.open = false
               this.getList()
-            } else {
+          } else {
               await addHouses(submitData)
               this.$modal.msgSuccess('新增成功')
               this.open = false
@@ -609,21 +609,21 @@ export default {
         this.districtOptions = response.rows
       })
     },
-
+    
     /** 加载楼栋选项 */
     loadBuildingOptions(districtId) {
       listBuilding({ level: 2, pid: districtId }).then(response => {
         this.buildingOptions = response.rows
       })
     },
-
+    
     /** 加载单元选项 */
     loadUnitOptions(buildingId) {
       listBuilding({ level: 3, pid: buildingId }).then(response => {
         this.unitOptions = response.rows
       })
     },
-
+    
     /** 处理小区选择变化 */
     handleDistrictChange(value) {
       this.queryParams.buildingId = null
@@ -634,7 +634,7 @@ export default {
         this.loadBuildingOptions(value)
       }
     },
-
+    
     /** 处理楼栋选择变化 */
     handleBuildingChange(value) {
       this.queryParams.unitId = null
@@ -643,7 +643,7 @@ export default {
         this.loadUnitOptions(value)
       }
     },
-
+    
     /** 处理表单小区选择变化 */
     handleFormDistrictChange(value) {
       this.form.buildingId = null
@@ -654,7 +654,7 @@ export default {
         this.loadBuildingOptions(value)
       }
     },
-
+    
     /** 处理表单楼栋选择变化 */
     handleFormBuildingChange(value) {
       this.form.unitId = null
@@ -663,12 +663,12 @@ export default {
         this.loadUnitOptions(value)
       }
     },
-
+    
     /** 导入按钮操作 */
     handleImport() {
       this.upload.open = true
     },
-
+    
     /** 格式化多值显示 */
     formatMultipleValues(value) {
       if (!value) return ''
@@ -676,21 +676,21 @@ export default {
       if (values.length <= 1) return value
       return values[0] + ` (共${values.length}个)`
     },
-
+    
     /** 下载模板操作 */
     downloadTemplate() {
       // 创建工作簿
       const wb = XLSX.utils.book_new()
-
+      
       // 创建模板数据
       const templateData = [
         this.excel.headers,
         ['示例小区', '1号楼', 'A单元', '101', '张三,李四', '13800138000,13800138001', '110101199001011234,110101199001011235', '120', '高层', 'H-101', '未绑定']
       ]
-
+      
       // 创建工作表
       const ws = XLSX.utils.aoa_to_sheet(templateData)
-
+      
       // 设置列宽
       ws['!cols'] = [
         { wch: 20 }, // 小区
@@ -705,16 +705,16 @@ export default {
         { wch: 15 }, // 房屋编号
         { wch: 10 } // 绑定状态
       ]
-
+      
       // 将工作表添加到工作簿
       XLSX.utils.book_append_sheet(wb, ws, '房屋信息导入模板')
-
+      
       // 生成Excel文件并下载
       const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
       const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
       FileSaver.saveAs(blob, '房屋信息导入模板.xlsx')
     },
-
+    
     /** 导出按钮操作 */
     handleExport() {
       this.$confirm('是否确认导出所有数据项?', '警告', {
@@ -733,7 +733,7 @@ export default {
           const districts = districtRes.rows
           const buildings = buildingRes.rows
           const units = unitRes.rows
-
+          
           // 创建ID到名称的映射
           const districtMap = new Map(districts.map(d => [d.id, d.name]))
           const buildingMap = new Map(buildings.map(b => [b.id, b.name]))
@@ -742,7 +742,7 @@ export default {
           const exportData = []
           // 添加表头
           exportData.push(this.excel.headers)
-
+          
           // 处理数据
           housesRes.rows.forEach(item => {
             exportData.push([
@@ -759,11 +759,11 @@ export default {
               item.isBind === 1 ? '已绑定' : '未绑定'
             ])
           })
-
+          
           // 创建工作簿和工作表
           const wb = XLSX.utils.book_new()
           const ws = XLSX.utils.aoa_to_sheet(exportData)
-
+          
           // 设置列宽
           ws['!cols'] = [
             { wch: 20 }, // 小区
@@ -778,10 +778,10 @@ export default {
             { wch: 15 }, // 房屋编号
             { wch: 10 } // 绑定状态
           ]
-
+          
           // 将工作表添加到工作簿
           XLSX.utils.book_append_sheet(wb, ws, '房屋信息数据')
-
+          
           // 生成Excel文件并下载
           const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
           const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
@@ -791,7 +791,7 @@ export default {
         })
       })
     },
-
+    
     /** 文件上传前的处理 */
     beforeUpload(file) {
       const isExcel = /\.(xlsx|xls)$/i.test(file.name)
@@ -807,8 +807,8 @@ export default {
           const workbook = XLSX.read(data, { type: 'array' })
           const worksheet = workbook.Sheets[workbook.SheetNames[0]]
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-
-          // 移除表头
+        
+        // 移除表头
           const headers = jsonData.shift()
 
           // 验证数据格式
@@ -902,7 +902,7 @@ export default {
               } else {
                 const addRes = await addBuilding({
                   name: buildingName,
-                  level: 2,
+                  level: 2, 
                   pid: district.id
                 })
                 console.log('添加楼栋结果:', addRes)
@@ -928,7 +928,7 @@ export default {
               } else {
                 const addRes = await addBuilding({
                   name: unitName,
-                  level: 3,
+                    level: 3,
                   pid: building.id
                 })
                 console.log('添加单元结果:', addRes)
@@ -998,12 +998,12 @@ export default {
         console.error('Import error:', error)
       }
     },
-
+    
     // 文件上传中处理
     handleFileUploadProgress(event, file, fileList) {
       this.upload.isUploading = true
     },
-
+    
     // 文件上传成功处理
     handleFileSuccess(response, file, fileList) {
       this.upload.open = false
@@ -1012,22 +1012,22 @@ export default {
       this.$alert(response.msg || '导入成功', '导入结果', { type: response.code === 200 ? 'success' : 'error' })
       this.getList()
     },
-
+    
     // 提交上传文件
     submitFileForm() {
       this.$refs.upload.submit()
     },
-
+    
     // 文件超出个数限制处理
     handleExceed() {
       this.$message.warning('最多只能上传1个文件')
     },
-
+    
     // 上传失败处理
     handleError(err) {
       this.upload.isUploading = false
       this.$message.error('导入失败，请重试')
-    }
+  }
   }
 }
 </script>

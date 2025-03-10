@@ -1,0 +1,7 @@
+<button 
+  class="login-button {{type === 'primary' ? 'primary' : 'default'}} {{size === 'mini' ? 'mini' : ''}}"
+  loading="{{loading}}"
+  bindtap="handleLogin"
+>
+  {{buttonText}}
+</button> 

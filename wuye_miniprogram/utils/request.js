@@ -1,79 +1,72 @@
 const BASE_URL = 'http://localhost:8080'; // 开发环境地址，生产环境需要修改
 
-// 封装请求方法
-const request = (url, options = {}) => {
+// 获取存储的 token
+const getToken = () => {
+  return wx.getStorageSync('token') || '';
+};
+
+// 设置 token
+const setToken = (token) => {
+  wx.setStorageSync('token', token);
+};
+
+// 清除 token
+const clearToken = () => {
+  wx.removeStorageSync('token');
+};
+
+// 请求拦截器
+const request = (method, url, data = {}) => {
   return new Promise((resolve, reject) => {
+    // 获取 token
+    const token = getToken();
+    
+    // 请求头
+    const header = {
+      'Content-Type': 'application/json'
+    };
+    
+    // 如果有 token，添加到请求头
+    if (token) {
+      header['Authorization'] = `Bearer ${token}`;
+    }
+    
     wx.request({
       url: `${BASE_URL}${url}`,
-      ...options,
-      header: {
-        'Content-Type': 'application/json',
-        'Authorization': wx.getStorageSync('token'), // 从本地存储获取token
-        ...options.header
-      },
+      method,
+      data,
+      header,
       success: (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code === 200) {
-            resolve(res.data);
-          } else {
-            wx.showToast({
-              title: res.data.msg || '请求失败',
-              icon: 'none'
-            });
-            reject(res.data);
-          }
-        } else if (res.statusCode === 401) {
-          // token失效，需要重新登录
-          wx.removeStorageSync('token');
+        // 如果接口返回未登录状态码（如 401），可以跳转到登录页
+        if (res.statusCode === 401) {
+          clearToken();
           wx.navigateTo({
             url: '/pages/login/index'
           });
-          reject(res.data);
-        } else {
-          wx.showToast({
-            title: '服务器错误',
-            icon: 'none'
-          });
-          reject(res.data);
+          reject(new Error('未登录或登录已过期'));
+          return;
         }
+        resolve(res.data);
       },
       fail: (err) => {
-        wx.showToast({
-          title: '网络错误',
-          icon: 'none'
-        });
         reject(err);
       }
     });
   });
 };
 
-// 封装常用的请求方法
+// HTTP 方法封装
 const http = {
-  get: (url, data) => {
-    return request(url, {
-      method: 'GET',
-      data
-    });
-  },
-  post: (url, data) => {
-    return request(url, {
-      method: 'POST',
-      data
-    });
-  },
-  put: (url, data) => {
-    return request(url, {
-      method: 'PUT',
-      data
-    });
-  },
-  delete: (url, data) => {
-    return request(url, {
-      method: 'DELETE',
-      data
-    });
-  }
+  get: (url, data) => request('GET', url, data),
+  post: (url, data) => request('POST', url, data),
+  put: (url, data) => request('PUT', url, data),
+  delete: (url, data) => request('DELETE', url, data)
 };
 
-module.exports = http; 
+// 导出 http 作为默认导出，保持向后兼容
+module.exports = http;
+
+// 同时导出其他工具函数
+http.getToken = getToken;
+http.setToken = setToken;
+http.clearToken = clearToken; 

@@ -1,0 +1,49 @@
+.container {
+  padding: 20rpx;
+  background-color: #f7f8fa;
+  min-height: 100vh;
+}
+
+.upload-section {
+  margin-top: 20rpx;
+  padding: 30rpx;
+  background-color: #fff;
+  border-radius: 8rpx;
+}
+
+.upload-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #323233;
+  margin-bottom: 10rpx;
+}
+
+.upload-desc {
+  font-size: 24rpx;
+  color: #969799;
+  margin-bottom: 20rpx;
+}
+
+.submit-section {
+  margin: 40rpx 0;
+  padding: 0 30rpx;
+}
+
+.tips {
+  padding: 30rpx;
+  background-color: #fff;
+  border-radius: 8rpx;
+}
+
+.tips-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #323233;
+  margin-bottom: 20rpx;
+}
+
+.tips-item {
+  font-size: 26rpx;
+  color: #646566;
+  line-height: 1.8;
+} 

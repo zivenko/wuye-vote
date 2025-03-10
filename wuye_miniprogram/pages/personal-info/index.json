@@ -1,9 +1,9 @@
 {
-  "navigationBarTitleText": "业主信息",
+  "navigationBarTitleText": "个人信息",
   "backgroundColor": "#F5F5F5",
   "usingComponents": {
-    "van-cell": "@vant/weapp/cell/index",
+    "van-field": "@vant/weapp/field/index",
     "van-cell-group": "@vant/weapp/cell-group/index",
-    "van-icon": "@vant/weapp/icon/index"
+    "van-button": "@vant/weapp/button/index"
   }
 }

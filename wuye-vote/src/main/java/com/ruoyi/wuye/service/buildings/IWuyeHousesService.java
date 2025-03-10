@@ -1,6 +1,6 @@
 package com.ruoyi.wuye.service.buildings;
 
-import com.ruoyi.wuye.domain.buildings.WuyeHouses;
+import com.ruoyi.common.core.domain.entity.wuye.buildings.WuyeHouses;
 
 import java.util.List;
 
@@ -20,6 +20,7 @@ public interface IWuyeHousesService
      * @return 物业房屋
      */
     public WuyeHouses selectWuyeHousesByHouseId(Long houseId);
+
 
     /**
      * 查询物业房屋列表
@@ -60,4 +61,6 @@ public interface IWuyeHousesService
      * @return 结果
      */
     public int deleteWuyeHousesByHouseId(Long houseId);
+
+    List<WuyeHouses> selectHousesByOwnerInfo(String ownerName, String ownerIdNumber);
 }

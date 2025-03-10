@@ -26,6 +26,15 @@ public interface SysRoleMapper
      */
     public List<SysRole> selectRolePermissionByUserId(Long userId);
 
+
+    /**
+     * 根据用户key查询角色
+     *
+     * @param roleKey 用户ID
+     * @return 角色
+     */
+    public SysRole selectRolePermissionByRoleKey(String roleKey);
+
     /**
      * 查询所有角色
      * 

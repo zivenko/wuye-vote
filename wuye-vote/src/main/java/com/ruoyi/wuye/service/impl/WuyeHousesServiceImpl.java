@@ -2,7 +2,7 @@ package com.ruoyi.wuye.service.impl;
 
 import java.util.List;
 
-import com.ruoyi.wuye.domain.buildings.WuyeHouses;
+import com.ruoyi.common.core.domain.entity.wuye.buildings.WuyeHouses;
 import com.ruoyi.wuye.mapper.buildings.WuyeHousesMapper;
 import com.ruoyi.wuye.service.buildings.IWuyeHousesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,5 +90,17 @@ public class WuyeHousesServiceImpl implements IWuyeHousesService
     public int deleteWuyeHousesByHouseId(Long houseId)
     {
         return wuyeHousesMapper.deleteWuyeHousesByHouseId(houseId);
+    }
+
+    /**
+     * 根据业主信息查询房屋
+     * 
+     * @param ownerName 业主姓名
+     * @param ownerIdNumber 业主身份证号
+     * @return 房屋列表
+     */
+    @Override
+    public List<WuyeHouses> selectHousesByOwnerInfo(String ownerName, String ownerIdNumber) {
+        return wuyeHousesMapper.selectHousesByOwnerInfo(ownerName, ownerIdNumber);
     }
 }

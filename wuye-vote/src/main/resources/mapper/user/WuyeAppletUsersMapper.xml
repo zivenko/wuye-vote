@@ -31,6 +31,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="houseIds != null  and houseIds != ''"> and house_ids = #{houseIds}</if>
         </where>
     </select>
+
+    <select id="selectWuyeAppletUsersByOpenId" parameterType="String" resultMap="WuyeAppletUsersResult">
+        <include refid="selectWuyeAppletUsersVo"/>
+        where openid = #{openId}
+    </select>
     
     <select id="selectWuyeAppletUsersByAppletId" parameterType="Long" resultMap="WuyeAppletUsersResult">
         <include refid="selectWuyeAppletUsersVo"/>
@@ -83,4 +88,16 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             #{appletId}
         </foreach>
     </delete>
+
+    <update id="updateWuyeAppletUsersAvatar">
+        update wuye_applet_users
+        set avatar = #{avatar}
+        where applet_id = #{appletId}
+    </update>
+
+    <update id="updateHouseIds">
+        update wuye_applet_users
+        set house_ids = #{houseIds}
+        where applet_id = #{appletId}
+    </update>
 </mapper>

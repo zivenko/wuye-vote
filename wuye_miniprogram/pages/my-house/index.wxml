@@ -3,26 +3,30 @@
     <text>添加房屋</text>
 </button>
 <view class="container">
-  <view class="house-list">
-    <view class="house-item" wx:for="{{houseList}}" wx:key="index" bindtap="onHouseClick" data-id="{{item.id}}">
-      <view class="status-bar">
-        <text class="time">提交时间: {{item.time}}</text>
-        <text class="status">{{item.status}}</text>
-      </view>
-      <view class="house-info">
-        <view class="house-title">{{item.title}}</view>
-        <view class="house-type">{{item.type}}</view>
-      </view>
-      <view class="house-image">
-        <image src="{{item.image}}" mode="aspectFill"></image>
-      </view>
-      <view class="house-details">
-        <view class="house-area">
-          <text>房屋专有部分面积</text>
-          <text>{{item.size}}m²</text>
+  <block wx:if="{{houses.length > 0}}">
+    <view class="house-list">
+      <view class="house-item" wx:for="{{houses}}" wx:key="houseId">
+        <view class="house-info">
+          <view class="house-title">{{item.districtName}}{{item.buildingName}}{{item.unitName}}{{item.roomNumber}}</view>
+          <view class="house-status" wx:if="{{item.checkStatus}}">
+            <text class="status-text {{item.checkStatus === 'uncheck' ? 'pending' : 'failed'}}">
+              {{item.checkStatus === 'uncheck' ? '审核中' : '审核失败'}}
+            </text>
+            <text class="error-msg" wx:if="{{item.checkStatus === 'fail'}}">{{item.checkErrorMsg}}</text>
+          </view>
+          <view class="house-action" wx:if="{{!item.checkStatus}}">
+            <van-button size="small" type="danger" bind:click="unbindHouse" data-house-id="{{item.houseId}}">解绑</van-button>
+          </view>
         </view>
-        <view class="house-desc">{{item.description}}</view>
       </view>
     </view>
+  </block>
+  <view class="empty-state" wx:else>
+    <image class="empty-image" src="/static/images/empty-house.png" mode="aspectFit"></image>
+    <text class="empty-text">暂无绑定房屋</text>
+  </view>
+
+  <view class="add-button">
+    <van-button type="primary" block icon="plus" bind:click="navigateToBindHouse">添加房屋</van-button>
   </view>
 </view>

@@ -5,12 +5,15 @@
     "pages/my-vote/index",
     "pages/voting/index",
     "pages/personal-info/index",
-    "pages/my-house/index"
+    "pages/my-house/index",
+    "pages/webview/index",
+    "pages/bind-house/index"
   ],
   "window": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "Weixin",
-    "navigationBarBackgroundColor": "#ffffff"
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "物业投票系统",
+    "navigationBarTextStyle": "black"
   },
   "componentFramework": "glass-easel",
   "sitemapLocation": "sitemap.json",
@@ -34,6 +37,15 @@
   },
   "usingComponents": {
     "van-tabbar": "@vant/weapp/tabbar/index",
-    "van-tabbar-item": "@vant/weapp/tabbar-item/index"
-  }
+    "van-tabbar-item": "@vant/weapp/tabbar-item/index",
+    "login-button": "/components/login-button/index",
+    "van-button": "@vant/weapp/button/index",
+    "van-field": "@vant/weapp/field/index",
+    "van-cell": "@vant/weapp/cell/index",
+    "van-cell-group": "@vant/weapp/cell-group/index",
+    "van-uploader": "@vant/weapp/uploader/index",
+    "van-picker": "@vant/weapp/picker/index",
+    "van-popup": "@vant/weapp/popup/index"
+  },
+  "style": "v2"
 }

@@ -60,6 +60,14 @@ public interface ISysRoleService
     public SysRole selectRoleById(Long roleId);
 
     /**
+     * 通过角色权限查询
+     *
+     * @param roleKey 角色ID
+     * @return 角色对象信息
+     */
+    SysRole selectRoleByRoleKey(String roleKey);
+
+    /**
      * 校验角色名称是否唯一
      * 
      * @param role 角色信息

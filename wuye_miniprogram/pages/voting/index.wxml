@@ -20,17 +20,29 @@
   </view>
 
   <block wx:if="{{template.status === 1}}">
-    <view class="options-container">
-      <text class="options-title">请选择您支持的方案：</text>
-      <radio-group class="radio-group" bindchange="handleOptionChange">
-        <label class="radio-item" wx:for="{{options}}" wx:key="value">
-          <radio value="{{item.value}}" color="#007AFF"/>
-          <text>方案{{item.label}}: {{item.content}}</text>
-        </label>
-      </radio-group>
-    </view>
+    <block wx:if="{{isLoggedIn}}">
+      <view class="options-container">
+        <text class="options-title">请选择您支持的方案：</text>
+        <radio-group class="radio-group" bindchange="handleOptionChange">
+          <label class="radio-item" wx:for="{{options}}" wx:key="value">
+            <radio value="{{item.value}}" color="#007AFF"/>
+            <text>方案{{item.label}}: {{item.content}}</text>
+          </label>
+        </radio-group>
+      </view>
 
-    <button class="submit-btn" bindtap="handleSubmit">提交投票</button>
+      <button class="submit-btn" bindtap="handleSubmit">提交投票</button>
+    </block>
+    <block wx:else>
+      <view class="login-tip">
+        <text>请先登录后参与投票</text>
+        <login-button 
+          button-text="微信一键登录" 
+          bind:loginsuccess="handleLoginSuccess"
+          bind:loginfail="handleLoginFail"
+        />
+      </view>
+    </block>
   </block>
 
   <block wx:else>

@@ -11,8 +11,8 @@ const getVoteTemplateDetail = (templateId) => {
 };
 
 // 获取用户可参与的投票列表
-const getUserVoteTemplateList = (appletId, keyword, status) => {
-  return http.get(`/system/template/user/${appletId}`, {
+const getUserVoteTemplateList = (keyword, status) => {
+  return http.get(`/system/template/user`, {
       keyword,
       status
   });

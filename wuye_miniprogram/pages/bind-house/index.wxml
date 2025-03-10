@@ -1,0 +1,123 @@
+<view class="container">
+  <van-cell-group>
+    <!-- 房屋选择 -->
+    <van-cell
+      title="选择小区"
+      is-link
+      value="{{districtName || '请选择'}}"
+      bind:click="showDistrictPicker"
+      required
+    />
+    <van-cell
+      title="选择楼栋"
+      is-link
+      value="{{buildingName || '请选择'}}"
+      bind:click="showBuildingPicker"
+      required
+      disabled="{{!districtId}}"
+    />
+    <van-cell
+      title="选择单元"
+      is-link
+      value="{{unitName || '请选择'}}"
+      bind:click="showUnitPicker"
+      required
+      disabled="{{!buildingId}}"
+    />
+    <van-cell
+      title="选择房间"
+      is-link
+      value="{{roomNumber || '请选择'}}"
+      bind:click="showRoomPicker"
+      required
+      disabled="{{!unitId}}"
+    />
+
+    <!-- 业主信息 -->
+    <van-field
+      value="{{ ownerName }}"
+      required
+      clearable
+      label="业主姓名"
+      placeholder="请输入业主姓名"
+      bind:change="onOwnerNameChange"
+    />
+    
+    <van-field
+      value="{{ ownerIdNumber }}"
+      required
+      clearable
+      label="身份证号"
+      placeholder="请输入身份证号"
+      bind:change="onOwnerIdNumberChange"
+    />
+  </van-cell-group>
+
+  <view class="upload-section">
+    <view class="upload-title">房屋证明</view>
+    <view class="upload-desc">请上传房产证、购房合同等房屋所有权证明</view>
+    <van-uploader
+      file-list="{{ fileList }}"
+      max-count="1"
+      bind:after-read="afterRead"
+      bind:delete="deleteImg"
+    />
+  </view>
+
+  <view class="submit-section">
+    <van-button 
+      type="primary" 
+      block 
+      loading="{{ loading }}"
+      bind:click="submitForm"
+    >提交申请</van-button>
+  </view>
+
+  <view class="tips">
+    <view class="tips-title">温馨提示：</view>
+    <view class="tips-item">1. 请确保填写的信息真实有效</view>
+    <view class="tips-item">2. 提交后物业将在1-3个工作日内进行审核</view>
+    <view class="tips-item">3. 审核结果将通过微信消息通知您</view>
+  </view>
+
+  <!-- 选择器弹出层 -->
+  <van-popup show="{{ showDistrictPicker }}" position="bottom" bind:close="onDistrictPickerClose">
+    <van-picker 
+      show-toolbar
+      columns="{{ districtList }}"
+      bind:cancel="onDistrictPickerClose"
+      bind:confirm="onDistrictPickerConfirm"
+      title="选择小区"
+    />
+  </van-popup>
+
+  <van-popup show="{{ showBuildingPicker }}" position="bottom" bind:close="onBuildingPickerClose">
+    <van-picker 
+      show-toolbar
+      columns="{{ buildingList }}"
+      bind:cancel="onBuildingPickerClose"
+      bind:confirm="onBuildingPickerConfirm"
+      title="选择楼栋"
+    />
+  </van-popup>
+
+  <van-popup show="{{ showUnitPicker }}" position="bottom" bind:close="onUnitPickerClose">
+    <van-picker 
+      show-toolbar
+      columns="{{ unitList }}"
+      bind:cancel="onUnitPickerClose"
+      bind:confirm="onUnitPickerConfirm"
+      title="选择单元"
+    />
+  </van-popup>
+
+  <van-popup show="{{ showRoomPicker }}" position="bottom" bind:close="onRoomPickerClose">
+    <van-picker 
+      show-toolbar
+      columns="{{ roomList }}"
+      bind:cancel="onRoomPickerClose"
+      bind:confirm="onRoomPickerConfirm"
+      title="选择房间"
+    />
+  </van-popup>
+</view> 

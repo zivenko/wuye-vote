@@ -2,15 +2,20 @@ package com.ruoyi.common.core.domain.model;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.ruoyi.common.core.domain.entity.SysUser;
+import com.ruoyi.common.core.domain.entity.wuye.user.WuyeAppletUsers;
+import com.ruoyi.common.utils.SecurityUtils;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * 登录用户身份权限
- * 
- * @author ruoyi
+ *
+ * @author u1
  */
 public class LoginUser implements UserDetails
 {
@@ -25,6 +30,13 @@ public class LoginUser implements UserDetails
      * 部门ID
      */
     private Long deptId;
+
+    /**
+     * openid
+     */
+    @Getter
+    @Setter
+    private String openid;
 
     /**
      * 用户唯一标识
@@ -71,6 +83,13 @@ public class LoginUser implements UserDetails
      */
     private SysUser user;
 
+    /**
+     * 微信用户
+     */
+    @Getter
+    @Setter
+    private WuyeAppletUsers appletUser;
+
     public LoginUser()
     {
     }
@@ -78,6 +97,12 @@ public class LoginUser implements UserDetails
     public LoginUser(SysUser user, Set<String> permissions)
     {
         this.user = user;
+        this.permissions = permissions;
+    }
+
+    public LoginUser(String openid, WuyeAppletUsers appletUser, Set<String> permissions) {
+        this.openid = openid;
+        this.appletUser = appletUser;
         this.permissions = permissions;
     }
 
@@ -123,13 +148,14 @@ public class LoginUser implements UserDetails
     @Override
     public String getPassword()
     {
-        return user.getPassword();
+        return Objects.isNull(user) ?
+                SecurityUtils.encryptPassword(openid) : user.getPassword();
     }
 
     @Override
     public String getUsername()
     {
-        return user.getUserName();
+        return Objects.isNull(user) ? appletUser.getOpenid() : user.getUserName();
     }
 
     /**
@@ -144,7 +170,7 @@ public class LoginUser implements UserDetails
 
     /**
      * 指定用户是否解锁,锁定的用户无法进行身份验证
-     * 
+     *
      * @return
      */
     @JSONField(serialize = false)
@@ -156,7 +182,7 @@ public class LoginUser implements UserDetails
 
     /**
      * 指示是否已过期的用户的凭据(密码),过期的凭据防止认证
-     * 
+     *
      * @return
      */
     @JSONField(serialize = false)
@@ -168,7 +194,7 @@ public class LoginUser implements UserDetails
 
     /**
      * 是否可用 ,禁用的用户不能身份验证
-     * 
+     *
      * @return
      */
     @JSONField(serialize = false)

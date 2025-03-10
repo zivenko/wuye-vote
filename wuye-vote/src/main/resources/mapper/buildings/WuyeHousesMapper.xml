@@ -17,32 +17,52 @@
         <result property="ownerMobiles"    column="owner_mobiles"    />
         <result property="ownerIdNumbers"    column="owner_id_numbers"    />
         <result property="isBind"    column="is_bind"    />
+        <result property="districtName"    column="district_name"    />
+        <result property="buildingName"    column="building_name"    />
+        <result property="unitName"    column="unit_name"    />
     </resultMap>
 
     <sql id="selectWuyeHousesVo">
-        select house_id, district_id, building_id, unit_id, room_number, area, type, house_number, owner_names, owner_mobiles, owner_id_numbers, is_bind from wuye_houses
+        SELECT h.house_id, h.district_id, h.building_id, h.unit_id, h.room_number, 
+               h.area, h.type, h.house_number, h.owner_names, h.owner_mobiles, 
+               h.owner_id_numbers, h.is_bind,
+               d.name as district_name,
+               b.name as building_name,
+               u.name as unit_name
+        FROM wuye_houses h
+        LEFT JOIN wuye_building d ON h.district_id = d.id AND d.level = 1
+        LEFT JOIN wuye_building b ON h.building_id = b.id AND b.level = 2
+        LEFT JOIN wuye_building u ON h.unit_id = u.id AND u.level = 3
     </sql>
 
     <select id="selectWuyeHousesList" parameterType="WuyeHouses" resultMap="WuyeHousesResult">
         <include refid="selectWuyeHousesVo"/>
         <where>
-            <if test="districtId != null "> and district_id = #{districtId}</if>
-            <if test="buildingId != null "> and building_id = #{buildingId}</if>
-            <if test="unitId != null "> and unit_id = #{unitId}</if>
-            <if test="roomNumber != null  and roomNumber != ''"> and room_number = #{roomNumber}</if>
-            <if test="area != null "> and area = #{area}</if>
-            <if test="type != null  and type != ''"> and type = #{type}</if>
-            <if test="houseNumber != null  and houseNumber != ''"> and house_number = #{houseNumber}</if>
-            <if test="ownerNames != null  and ownerNames != ''"> and owner_names = #{ownerNames}</if>
-            <if test="ownerMobiles != null  and ownerMobiles != ''"> and owner_mobiles = #{ownerMobiles}</if>
-            <if test="ownerIdNumbers != null  and ownerIdNumbers != ''"> and owner_id_numbers = #{ownerIdNumbers}</if>
-            <if test="isBind != null "> and is_bind = #{isBind}</if>
+            <if test="districtId != null "> and h.district_id = #{districtId}</if>
+            <if test="buildingId != null "> and h.building_id = #{buildingId}</if>
+            <if test="unitId != null "> and h.unit_id = #{unitId}</if>
+            <if test="roomNumber != null  and roomNumber != ''"> and h.room_number = #{roomNumber}</if>
+            <if test="area != null "> and h.area = #{area}</if>
+            <if test="type != null  and type != ''"> and h.type = #{type}</if>
+            <if test="houseNumber != null  and houseNumber != ''"> and h.house_number = #{houseNumber}</if>
+            <if test="ownerNames != null  and ownerNames != ''"> and h.owner_names = #{ownerNames}</if>
+            <if test="ownerMobiles != null  and ownerMobiles != ''"> and h.owner_mobiles = #{ownerMobiles}</if>
+            <if test="ownerIdNumbers != null  and ownerIdNumbers != ''"> and h.owner_id_numbers = #{ownerIdNumbers}</if>
+            <if test="isBind != null "> and h.is_bind = #{isBind}</if>
         </where>
     </select>
 
     <select id="selectWuyeHousesByHouseId" parameterType="Long" resultMap="WuyeHousesResult">
         <include refid="selectWuyeHousesVo"/>
-        where house_id = #{houseId}
+        where h.house_id = #{houseId}
+    </select>
+
+    <!-- 根据业主信息查询房屋 -->
+    <select id="selectHousesByOwnerInfo" resultMap="WuyeHousesResult">
+        <include refid="selectWuyeHousesVo"/>
+        where h.owner_names like concat('%', #{ownerName}, '%')
+          and h.owner_id_numbers like concat('%', #{ownerIdNumber}, '%')
+          and h.is_bind = 0
     </select>
 
     <insert id="insertWuyeHouses" parameterType="WuyeHouses" useGeneratedKeys="true" keyProperty="houseId">

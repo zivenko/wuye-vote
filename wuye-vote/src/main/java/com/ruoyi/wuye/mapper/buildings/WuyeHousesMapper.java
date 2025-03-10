@@ -1,6 +1,7 @@
 package com.ruoyi.wuye.mapper.buildings;
 
-import com.ruoyi.wuye.domain.buildings.WuyeHouses;
+import com.ruoyi.common.core.domain.entity.wuye.buildings.WuyeHouses;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -28,6 +29,15 @@ public interface WuyeHousesMapper
      * @return 物业房屋集合
      */
     public List<WuyeHouses> selectWuyeHousesList(WuyeHouses wuyeHouses);
+
+    /**
+     * 根据业主信息查询房屋
+     *
+     * @param ownerName 业主姓名
+     * @param ownerIdNumber 业主身份证号
+     * @return 房屋列表
+     */
+    public List<WuyeHouses> selectHousesByOwnerInfo(@Param("ownerName") String ownerName, @Param("ownerIdNumber") String ownerIdNumber);
 
     /**
      * 新增物业房屋

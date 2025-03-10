@@ -3,6 +3,8 @@ package com.ruoyi.web.controller.buildings;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.common.core.domain.entity.wuye.user.WuyeAppletUsers;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.wuye.domain.buildings.WuyeHouseBindCheck;
 import com.ruoyi.wuye.service.buildings.IWuyeHouseBindCheckService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -78,6 +80,8 @@ public class WuyeHouseBindCheckController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody WuyeHouseBindCheck wuyeHouseBindCheck)
     {
+        WuyeAppletUsers appletUser = SecurityUtils.getLoginUser().getAppletUser();
+        wuyeHouseBindCheck.setAppletId(appletUser.getAppletId());
         return toAjax(wuyeHouseBindCheckService.insertWuyeHouseBindCheck(wuyeHouseBindCheck));
     }
 

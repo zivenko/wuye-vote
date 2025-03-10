@@ -1,6 +1,8 @@
 package com.ruoyi.wuye.service.user;
 
-import com.ruoyi.wuye.domain.user.WuyeAppletUsers;
+
+import com.ruoyi.common.core.domain.entity.wuye.user.WuyeAppletUsers;
+import me.chanjar.weixin.common.error.WxErrorException;
 
 import java.util.List;
 
@@ -22,6 +24,14 @@ public interface IWuyeAppletUsersService
     public WuyeAppletUsers selectWuyeAppletUsersByAppletId(Long appletId);
 
     /**
+     * 查询小程序用户
+     *
+     * @param openId 小程序用户openId
+     * @return 小程序用户
+     */
+    WuyeAppletUsers selectWuyeAppletUsersByOpenId(String openId);
+
+    /**
      * 查询小程序用户列表
      * 
      * @param wuyeAppletUsers 小程序用户
@@ -38,9 +48,17 @@ public interface IWuyeAppletUsersService
     public int insertWuyeAppletUsers(WuyeAppletUsers wuyeAppletUsers);
 
     /**
-     * 修改小程序用户
+     * 修改小程序用户信息
      * 
-     * @param wuyeAppletUsers 小程序用户
+     * @param wuyeAppletUsers 小程序用户信息，包含以下字段：
+     *                        - appletId: 用户ID
+     *                        - name: 姓名
+     *                        - mobile: 手机号
+     *                        - idNumber: 身份证号
+     *                        - avatar: 头像
+     *                        - nikeName: 昵称
+     *                        - openid: 微信openid
+     *                        - houseIds: 房屋ID列表
      * @return 结果
      */
     public int updateWuyeAppletUsers(WuyeAppletUsers wuyeAppletUsers);
@@ -55,9 +73,27 @@ public interface IWuyeAppletUsersService
 
     /**
      * 删除小程序用户信息
-     * 
+     *
      * @param appletId 小程序用户主键
      * @return 结果
      */
     public int deleteWuyeAppletUsersByAppletId(Long appletId);
+
+    /**
+     * 解绑房屋
+     * 
+     * @param appletId 用户ID
+     * @param houseId 房屋ID
+     * @return 结果
+     */
+    public boolean unbindHouse(Long appletId, Long houseId);
+
+    /**
+     * 更新小程序用户头像
+     * 
+     * @param appletId 小程序用户ID
+     * @param avatar 头像地址
+     * @return 结果
+     */
+    public boolean updateWuyeAppletUsersAvatar(Long appletId, String avatar);
 }

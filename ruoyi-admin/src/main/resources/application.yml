@@ -135,3 +135,9 @@ dict:
       0: 未开始
       1: 进行中
       2: 已结束
+
+
+wx:
+  miniapp:
+    appId: wxc56ac15293c284c6  # 小程序微信公众平台appId
+    secret: 52d21fd3e33c6c9421c75acc0a535f29  # 小程序微信公众平台api秘钥

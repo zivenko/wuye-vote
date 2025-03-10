@@ -3,6 +3,8 @@ package com.ruoyi.web.controller.vote;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.common.core.domain.entity.wuye.user.WuyeAppletUsers;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.wuye.domain.vote.WuyeVoteTemplate;
 import com.ruoyi.wuye.service.vote.IWuyeVoteTemplateService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -116,13 +118,13 @@ public class WuyeVoteTemplateController extends BaseController
     /**
      * 查询用户可参与的投票模板列表
      */
-    @GetMapping("/user/{appletId}")
+    @GetMapping("/user")
     public AjaxResult userList(
-            @PathVariable("appletId") Long appletId,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "status", required = false) Integer status)
     {
-        List<WuyeVoteTemplate> list = wuyeVoteTemplateService.selectUserVoteTemplateList(appletId, keyword, status);
+        WuyeAppletUsers appletUser = SecurityUtils.getLoginUser().getAppletUser();
+        List<WuyeVoteTemplate> list = wuyeVoteTemplateService.selectUserVoteTemplateList(appletUser.getAppletId(), keyword, status);
         return success(list);
     }
 }

@@ -5,10 +5,17 @@ Page({
     templateId: null,
     template: null,
     options: [],
-    selectedOption: ''
+    selectedOption: '',
+    isLoggedIn: false
   },
 
   onLoad(options) {
+    // 检查登录状态
+    const app = getApp();
+    const isLoggedIn = app.globalData.isLoggedIn;
+    
+    this.setData({ isLoggedIn });
+
     if (options.id) {
       this.setData({
         templateId: options.id
@@ -23,6 +30,23 @@ Page({
         wx.navigateBack();
       }, 1500);
     }
+  },
+
+  // 登录成功处理
+  handleLoginSuccess() {
+    this.setData({ isLoggedIn: true });
+    wx.showToast({
+      title: '登录成功',
+      icon: 'success'
+    });
+  },
+
+  // 登录失败处理
+  handleLoginFail(e) {
+    wx.showToast({
+      title: e.detail.error || '登录失败',
+      icon: 'none'
+    });
   },
 
   // 加载投票模板数据
@@ -92,22 +116,12 @@ Page({
       return;
     }
 
-    // 检查用户信息
-    const app = getApp();
-    if (!app.globalData || !app.globalData.userInfo || !app.globalData.userInfo.appletId) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
-      // 可以在这里添加跳转到登录页面的逻辑
-      return;
-    }
-
     wx.showLoading({
       title: '提交中...'
     });
 
     try {
+      const app = getApp();
       const res = await voteApi.submitVote({
         templateId: this.data.templateId,
         appletId: app.globalData.userInfo.appletId,

@@ -1,15 +1,29 @@
-
 <view class="profile">
-  <van-image
-    round
-    width="6rem"
-    height="6rem"
-    src="https://img.yzcdn.cn/vant/cat.jpeg"
-  />
-  <text class="username">用户名</text>
+  <!-- 已登录状态显示头像和用户名 -->
+  <block wx:if="{{isLoggedIn}}">
+    <van-image
+      round
+      width="6rem"
+      height="6rem"
+      src="{{userInfo.avatar || userInfo.avatarUrl || 'https://img.yzcdn.cn/vant/cat.jpeg'}}"
+      bindtap="handleChangeAvatar"
+    />
+    <text class="username">{{userInfo.nikeName || userInfo.nickname || '微信用户'}}</text>
+  </block>
+  
+  <!-- 未登录状态只显示登录按钮 -->
+  <block wx:else>
+    <login-button 
+      class="login-btn" 
+      button-text="登录" 
+      bind:loginsuccess="handleLoginSuccess"
+      bind:loginfail="handleLoginFail"
+    />
+  </block>
 </view>
+
 <van-cell-group inset border="{{false}}">
-  <van-cell size="large" title="业主信息" url="/pages/personal-info/index" is-link />
-  <van-cell size="large" title="我的房屋" url="/pages/my-house/index" is-link />
+  <van-cell size="large" title="业主信息" url="{{isLoggedIn ? '/pages/personal-info/index' : ''}}" is-link bindtap="{{isLoggedIn ? '' : 'handleLogin'}}" />
+  <van-cell size="large" title="我的房屋" url="{{isLoggedIn ? '/pages/my-house/index' : ''}}" is-link bindtap="{{isLoggedIn ? '' : 'handleLogin'}}" />
 </van-cell-group>
 

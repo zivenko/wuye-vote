@@ -1,10 +1,11 @@
-package com.ruoyi.wuye.domain.buildings;
+package com.ruoyi.common.core.domain.entity.wuye.buildings;
 
-import java.math.BigDecimal;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import java.math.BigDecimal;
 
 /**
  * 物业房屋对象 wuye_houses
@@ -62,6 +63,55 @@ public class WuyeHouses extends BaseEntity
     /** 小程序绑定人(0：未绑定，1：已绑定) */
     @Excel(name = "小程序绑定人(0：未绑定，1：已绑定)")
     private Long isBind;
+
+    /** 小区名称 */
+    private String districtName;
+
+    /** 楼栋名称 */
+    private String buildingName;
+
+    /** 单元名称 */
+    private String unitName;
+
+    /** 审核状态 */
+    private String checkStatus;
+
+    /** 审核失败原因 */
+    private String checkErrorMsg;
+
+    public void setIsBind(Long isBind)
+    {
+        this.isBind = isBind;
+    }
+
+    public Long getIsBind()
+    {
+        return isBind;
+    }
+
+    public String getDistrictName() {
+        return districtName;
+    }
+
+    public void setDistrictName(String districtName) {
+        this.districtName = districtName;
+    }
+
+    public String getBuildingName() {
+        return buildingName;
+    }
+
+    public void setBuildingName(String buildingName) {
+        this.buildingName = buildingName;
+    }
+
+    public String getUnitName() {
+        return unitName;
+    }
+
+    public void setUnitName(String unitName) {
+        this.unitName = unitName;
+    }
 
     public void setHouseId(Long houseId)
     {
@@ -173,15 +223,22 @@ public class WuyeHouses extends BaseEntity
         return ownerIdNumbers;
     }
 
-    public void setIsBind(Long isBind)
-    {
-        this.isBind = isBind;
+    public String getCheckStatus() {
+        return checkStatus;
     }
 
-    public Long getIsBind()
-    {
-        return isBind;
+    public void setCheckStatus(String checkStatus) {
+        this.checkStatus = checkStatus;
     }
+
+    public String getCheckErrorMsg() {
+        return checkErrorMsg;
+    }
+
+    public void setCheckErrorMsg(String checkErrorMsg) {
+        this.checkErrorMsg = checkErrorMsg;
+    }
+
 
     @Override
     public String toString() {

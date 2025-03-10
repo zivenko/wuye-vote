@@ -32,7 +32,7 @@ Page({
     // 加载投票列表
     async loadVoteList() {
         try {
-            const res = await voteApi.getUserVoteTemplateList(1, this.data.value, this.data.activeTab - 1);
+            const res = await voteApi.getUserVoteTemplateList(this.data.value, this.data.activeTab - 1);
             if (res.code === 200) {
                 this.setData({
                     voteList: res.data,
