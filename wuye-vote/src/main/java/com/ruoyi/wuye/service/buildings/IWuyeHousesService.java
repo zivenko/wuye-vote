@@ -63,4 +63,15 @@ public interface IWuyeHousesService
     public int deleteWuyeHousesByHouseId(Long houseId);
 
     List<WuyeHouses> selectHousesByOwnerInfo(String ownerName, String ownerIdNumber);
+
+    /**
+     * 根据位置信息查找房屋
+     * 
+     * @param districtName 小区名称
+     * @param buildingName 楼栋名称
+     * @param unitName 单元名称
+     * @param roomNumber 房号
+     * @return 房屋信息
+     */
+    public WuyeHouses getHouseByLocation(String districtName, String buildingName, String unitName, String roomNumber);
 }

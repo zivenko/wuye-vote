@@ -103,4 +103,9 @@ public class WuyeHousesServiceImpl implements IWuyeHousesService
     public List<WuyeHouses> selectHousesByOwnerInfo(String ownerName, String ownerIdNumber) {
         return wuyeHousesMapper.selectHousesByOwnerInfo(ownerName, ownerIdNumber);
     }
+
+    @Override
+    public WuyeHouses getHouseByLocation(String districtName, String buildingName, String unitName, String roomNumber) {
+        return wuyeHousesMapper.selectHouseByLocation(districtName, buildingName, unitName, roomNumber);
+    }
 }

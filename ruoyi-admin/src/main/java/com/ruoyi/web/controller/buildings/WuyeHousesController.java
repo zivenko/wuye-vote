@@ -54,7 +54,7 @@ public class WuyeHousesController extends BaseController
     @GetMapping("/list")
     public TableDataInfo list(WuyeHouses wuyeHouses)
     {
-        startPage();
+//        startPage();
         List<WuyeHouses> list = wuyeHousesService.selectWuyeHousesList(wuyeHouses);
         return getDataTable(list);
     }

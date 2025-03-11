@@ -70,4 +70,7 @@ public interface WuyeHousesMapper
      * @return 结果
      */
     public int deleteWuyeHousesByHouseIds(Long[] houseIds);
+
+
+    public WuyeHouses selectHouseByLocation(String districtName, String buildingName, String unitName, String roomNumber);
 }

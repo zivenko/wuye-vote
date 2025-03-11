@@ -7,7 +7,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="WuyeHouseBindCheck" id="WuyeHouseBindCheckResult">
         <result property="checkId"    column="check_id"    />
         <result property="appletId"    column="applet_id"    />
+        <result property="appletUserName"    column="name"    />
+        <result property="appletUserIdNumber"    column="id_number"    />
         <result property="houseId"    column="house_id"    />
+        <result property="buildingName"    column="building_name"    />
+        <result property="unitName"    column="unit_name"    />
+        <result property="roomNumber"    column="room_number"    />
         <result property="certificate"    column="certificate"    />
         <result property="checkStatus"    column="check_status"    />
         <result property="checkErrorMsg"    column="check_error_msg"    />
@@ -17,25 +22,39 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectWuyeHouseBindCheckVo">
-        select check_id, applet_id, house_id, certificate, check_status, check_error_msg, create_time, check_time, user_id from wuye_house_bind_check
+        select c.check_id, c.applet_id, a.name, a.id_number, c.house_id, 
+        b3.name as district_name, b1.name as building_name, b2.name as unit_name, h.room_number,
+        c.certificate, c.check_status, c.check_error_msg, c.create_time, c.check_time, c.user_id 
+        from wuye_house_bind_check c
+        left join wuye_applet_users a on c.applet_id = a.applet_id
+        left join wuye_houses h on c.house_id = h.house_id
+        left join wuye_building b1 on h.building_id = b1.id
+        left join wuye_building b2 on h.unit_id = b2.id
+        left join wuye_building b3 on h.district_id = b3.id
     </sql>
 
     <select id="selectWuyeHouseBindCheckList" parameterType="WuyeHouseBindCheck" resultMap="WuyeHouseBindCheckResult">
         <include refid="selectWuyeHouseBindCheckVo"/>
         <where>  
-            <if test="appletId != null "> and applet_id = #{appletId}</if>
-            <if test="houseId != null "> and house_id = #{houseId}</if>
-            <if test="certificate != null  and certificate != ''"> and certificate = #{certificate}</if>
-            <if test="checkStatus != null  and checkStatus != ''"> and check_status = #{checkStatus}</if>
-            <if test="checkErrorMsg != null  and checkErrorMsg != ''"> and check_error_msg = #{checkErrorMsg}</if>
-            <if test="checkTime != null "> and check_time = #{checkTime}</if>
-            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="appletId != null "> and c.applet_id = #{appletId}</if>
+            <if test="appletUserName != null  and appletUserName != ''"> and a.name like concat('%', #{appletUserName}, '%')</if>
+            <if test="appletUserIdNumber != null  and appletUserIdNumber != ''"> and a.id_number = #{appletUserIdNumber}</if>
+            <if test="districtName != null and districtName != ''"> and b3.name like concat('%', #{districtName}, '%')</if>
+            <if test="buildingName != null and buildingName != ''"> and b1.name like concat('%', #{buildingName}, '%')</if>
+            <if test="unitName != null and unitName != ''"> and b2.name like concat('%', #{unitName}, '%')</if>
+            <if test="roomNumber != null and roomNumber != ''"> and h.room_number like concat('%', #{roomNumber}, '%')</if>
+            <if test="houseId != null "> and c.house_id = #{houseId}</if>
+            <if test="certificate != null  and certificate != ''"> and c.certificate = #{certificate}</if>
+            <if test="checkStatus != null  and checkStatus != ''"> and c.check_status = #{checkStatus}</if>
+            <if test="checkErrorMsg != null  and checkErrorMsg != ''"> and c.check_error_msg = #{checkErrorMsg}</if>
+            <if test="checkTime != null "> and c.check_time = #{checkTime}</if>
+            <if test="userId != null "> and c.user_id = #{userId}</if>
         </where>
     </select>
     
     <select id="selectWuyeHouseBindCheckByCheckId" parameterType="Long" resultMap="WuyeHouseBindCheckResult">
         <include refid="selectWuyeHouseBindCheckVo"/>
-        where check_id = #{checkId}
+        where c.check_id = #{checkId}
     </select>
 
     <insert id="insertWuyeHouseBindCheck" parameterType="WuyeHouseBindCheck" useGeneratedKeys="true" keyProperty="checkId">

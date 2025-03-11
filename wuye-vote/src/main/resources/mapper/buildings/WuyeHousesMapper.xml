@@ -123,4 +123,16 @@
             #{houseId}
         </foreach>
     </delete>
+
+    <select id="selectHouseByLocation" resultMap="WuyeHousesResult">
+        select h.* from wuye_houses h
+        left join wuye_building b1 on h.district_id = b1.id
+        left join wuye_building b2 on h.building_id = b2.id
+        left join wuye_building b3 on h.unit_id = b3.id
+        where b1.name = #{districtName}
+        and b2.name = #{buildingName}
+        and b3.name = #{unitName}
+        and h.room_number = #{roomNumber}
+        limit 1
+    </select>
 </mapper>
