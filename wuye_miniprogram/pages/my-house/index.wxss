@@ -1,22 +1,27 @@
-page {
-    padding-top: 40rpx;
+.page {
+    min-height: 100vh;
     background-color: #f5f5f5;
+    padding: 40rpx 0 120rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
-    padding: 20rpx;
-    min-height: 100vh;
+    flex: 1;
+    padding: 0 30rpx;
     background-color: #f7f8fa;
 }
 
 .add-house {
-    border: 0;
-    margin-left: 20rpx;
-    margin-right: 20rpx;
+    margin: 0 30rpx 20rpx;
+    padding: 24rpx 0;
     border-radius: 12rpx;
-    margin-bottom: 20rpx;
-    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background-color: #fff;
+    box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
 }
 
 .add-house .plus {
@@ -31,36 +36,56 @@ page {
 }
 
 .house-list {
-    padding-bottom: 120rpx;
+    width: 100%;
 }
 
 .house-item {
     background-color: #fff;
     border-radius: 12rpx;
-    padding: 24rpx;
+    padding: 30rpx;
     margin-bottom: 20rpx;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .house-info {
     position: relative;
+    width: 100%;
 }
 
 .house-title {
     font-size: 32rpx;
     font-weight: bold;
     color: #323233;
-    margin-bottom: 16rpx;
+    margin-bottom: 20rpx;
+    padding-right: 120rpx;
 }
 
 .house-status {
-    margin-top: 16rpx;
+    margin-top: 20rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.status-left {
+    display: flex;
+    align-items: center;
+}
+
+.status-right {
+    margin-left: 20rpx;
 }
 
 .status-text {
-    display: inline-block;
-    padding: 4rpx 12rpx;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12rpx;
+    height: 40rpx;
     border-radius: 8rpx;
     font-size: 24rpx;
+    line-height: 1;
 }
 
 .status-text.pending {
@@ -82,8 +107,7 @@ page {
 .house-action {
     position: absolute;
     right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 8rpx;
 }
 
 .empty-state {
@@ -104,14 +128,18 @@ page {
     color: #969799;
 }
 
-.add-button {
+.footer {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    padding: 20rpx;
     background-color: #fff;
+    padding: 20rpx;
     box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.add-button {
+    width: 100%;
 }
 
 .status-bar {
@@ -134,29 +162,48 @@ page {
     color: #FF4D4F;
 }
 
-.house-type {
-    font-size: 28rpx;
-    color: #666;
-    padding: 0 24rpx 24rpx 24rpx;
-}
-
 .house-image {
     width: 100%;
-    height: 300rpx;
-    padding: 0 24rpx;
-    box-sizing: border-box;
+    height: 320rpx;
+    margin: 20rpx 0;
+    border-radius: 8rpx;
+    overflow: hidden;
+    background-color: #f7f8fa;
 }
 
 .house-image image {
     width: 100%;
     height: 100%;
-    border-radius: 8rpx;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #f7f8fa;
+    color: #969799;
+}
+
+.image-placeholder text {
+    font-size: 24rpx;
+    margin-top: 16rpx;
+}
+
+.house-details {
+    margin: 20rpx 0;
+}
+
+.house-type {
+    font-size: 28rpx;
+    color: #666;
+    margin-bottom: 12rpx;
 }
 
 .house-area {
-    display: flex;
-    flex-direction: column;
-    padding: 24rpx;
     font-size: 28rpx;
     color: #666;
 }
@@ -173,18 +220,39 @@ page {
     padding: 0 24rpx;
 }
 
-.unbind-btn {
-    margin: 0;
-    padding: 0 32rpx;
-    height: 56rpx;
-    line-height: 56rpx;
-    font-size: 24rpx;
-    color: #FF4D4F;
-    background: #FFF;
-    border: 2rpx solid #FF4D4F;
-    border-radius: 28rpx;
+.house-footer {
+    margin-top: 20rpx;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 20rpx;
+    border-top: 2rpx solid #f5f5f5;
 }
 
-.unbind-btn::after {
-    border: none;
+.edit-btn {
+    margin: 0 !important;
+    padding: 0 32rpx !important;
+    height: 56rpx !important;
+    line-height: 54rpx !important;
+    font-size: 26rpx !important;
+    border-radius: 28rpx !important;
+}
+
+.edit-btn.van-button--danger {
+    border-color: #ee0a24 !important;
+    color: #ee0a24 !important;
+}
+
+.edit-btn.van-button--primary {
+    border-color: #1989fa !important;
+    color: #1989fa !important;
+}
+
+/* 覆盖 van-tag 的默认样式 */
+.van-tag {
+    padding: 0 16rpx !important;
+    height: 44rpx !important;
+    line-height: 44rpx !important;
+    font-size: 24rpx !important;
+    border-radius: 6rpx !important;
 }

@@ -127,6 +127,63 @@ const getRoomList = (unitId) => {
   return http.get('/system/houses/list', { unitId: unitId, isBind: 0 });
 };
 
+// 获取房屋详情
+const getHouseDetail = (houseId) => {
+  return http.get(`/system/houses/${houseId}`);
+};
+
+// 更新房屋审核信息（带文件上传）
+const updateHouseCheck = (checkId, houseId, filePath) => {
+  return new Promise((resolve, reject) => {
+    const app = getApp();
+    const baseUrl = app.globalData.baseUrl;
+    
+    if (!baseUrl) {
+      reject(new Error('未配置服务器地址'));
+      return;
+    }
+
+    console.log('[API] 更新房屋审核信息:', { checkId, houseId, filePath });
+
+    // 如果有文件，使用文件上传
+    wx.uploadFile({
+      url: `${baseUrl}/system/check/update`,
+      filePath: filePath,
+      name: 'file',
+      formData: {
+        checkId: String(checkId),
+        houseId: String(houseId)
+      },
+      header: {
+        'Authorization': wx.getStorageSync('token')
+      },
+      success: (res) => {
+        console.log('[API] 更新响应:', res);
+        try {
+          const data = JSON.parse(res.data);
+          resolve(data);
+        } catch (e) {
+          console.error('[API] 解析响应数据失败:', e);
+          reject(new Error('解析响应数据失败'));
+        }
+      },
+      fail: (err) => {
+        console.error('[API] 更新失败:', err);
+        reject(err);
+      }
+    });
+  });
+};
+
+// 更新房屋审核信息（不带文件上传）
+const updateHouseCheckWithoutFile = (checkId, houseId) => {
+  console.log('[API] 更新房屋审核信息(不带文件):', { checkId, houseId });
+  return http.post('/system/check/update', {
+    checkId: String(checkId),
+    houseId: String(houseId)
+  });
+};
+
 module.exports = {
   wxLogin,
   getUserInfo,
@@ -139,5 +196,8 @@ module.exports = {
   getDistrictList,
   getBuildingList,
   getUnitList,
-  getRoomList
+  getRoomList,
+  getHouseDetail,
+  updateHouseCheck,
+  updateHouseCheckWithoutFile
 }; 

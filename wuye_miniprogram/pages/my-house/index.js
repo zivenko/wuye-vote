@@ -1,8 +1,10 @@
 const userApi = require('../../api/user');
+const app = getApp();
 
 Page({
   data: {
-    houses: []
+    houses: [],
+    baseURL: app.globalData.baseUrl
   },
 
   onShow() {
@@ -13,6 +15,8 @@ Page({
   async loadHousesList() {
     try {
       const res = await userApi.getHousesList();
+      console.log(res, '加载房屋列表');
+      
       if (res.code === 200) {
         this.setData({
           houses: res.data || []
@@ -70,6 +74,36 @@ Page({
   navigateToBindHouse() {
     wx.navigateTo({
       url: '/pages/bind-house/index'
+    });
+  },
+
+  // 修改房屋信息
+  editHouse(event) {
+    const { house } = event.currentTarget.dataset;
+    // 构建完整的URL参数
+    const params = {
+      houseId: house.houseId,
+      districtId: house.districtId,
+      buildingId: house.buildingId,
+      unitId: house.unitId,
+      roomNumber: house.roomNumber,
+      certificate: house.certificate,
+      // 添加显示名称，用于回显
+      districtName: house.districtName,
+      buildingName: house.buildingName,
+      unitName: house.unitName,
+      type: house.type,
+      area: house.area,
+      isEdit: true // 标记是编辑模式
+    };
+
+    // 将对象转换为URL查询字符串
+    const queryString = Object.keys(params)
+      .map(key => `${key}=${encodeURIComponent(params[key] || '')}`)
+      .join('&');
+
+    wx.navigateTo({
+      url: `/pages/bind-house/index?${queryString}`
     });
   }
 });

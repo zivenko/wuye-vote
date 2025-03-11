@@ -79,6 +79,17 @@ public class WuyeHouses extends BaseEntity
     /** 审核失败原因 */
     private String checkErrorMsg;
 
+    /** 房产证明 */
+    private String certificate;
+
+    public String getCertificate() {
+        return certificate;
+    }
+
+    public void setCertificate(String certificate) {
+        this.certificate = certificate;
+    }
+
     public void setIsBind(Long isBind)
     {
         this.isBind = isBind;

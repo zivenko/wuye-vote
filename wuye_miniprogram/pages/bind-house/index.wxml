@@ -1,57 +1,44 @@
 <view class="container">
-  <van-cell-group>
-    <!-- 房屋选择 -->
-    <van-cell
-      title="选择小区"
-      is-link
-      value="{{districtName || '请选择'}}"
-      bind:click="showDistrictPicker"
-      required
-    />
-    <van-cell
-      title="选择楼栋"
-      is-link
-      value="{{buildingName || '请选择'}}"
-      bind:click="showBuildingPicker"
-      required
-      disabled="{{!districtId}}"
-    />
-    <van-cell
-      title="选择单元"
-      is-link
-      value="{{unitName || '请选择'}}"
-      bind:click="showUnitPicker"
-      required
-      disabled="{{!buildingId}}"
-    />
-    <van-cell
-      title="选择房间"
-      is-link
-      value="{{roomNumber || '请选择'}}"
-      bind:click="showRoomPicker"
-      required
-      disabled="{{!unitId}}"
-    />
-
-    <!-- 业主信息 -->
-    <van-field
-      value="{{ ownerName }}"
-      required
-      clearable
-      label="业主姓名"
-      placeholder="请输入业主姓名"
-      bind:change="onOwnerNameChange"
-    />
-    
-    <van-field
-      value="{{ ownerIdNumber }}"
-      required
-      clearable
-      label="身份证号"
-      placeholder="请输入身份证号"
-      bind:change="onOwnerIdNumberChange"
-    />
-  </van-cell-group>
+  <view class="cell-group-wrapper">
+    <van-cell-group>
+      <!-- 房屋选择 -->
+      <van-cell
+        title="选择小区"
+        is-link
+        value="{{districtName || '请选择'}}"
+        bind:click="showDistrictPicker"
+        required
+        custom-class="custom-cell"
+      />
+      <van-cell
+        title="选择楼栋"
+        is-link
+        value="{{buildingName || '请选择'}}"
+        bind:click="showBuildingPicker"
+        required
+        disabled="{{!districtId}}"
+        custom-class="custom-cell"
+      />
+      <van-cell
+        title="选择单元"
+        is-link
+        value="{{unitName || '请选择'}}"
+        bind:click="showUnitPicker"
+        required
+        disabled="{{!buildingId}}"
+        custom-class="custom-cell"
+      />
+      <van-cell
+        title="选择房间"
+        is-link
+        value="{{roomNumber || '请选择'}}"
+        bind:click="showRoomPicker"
+        required
+        disabled="{{!unitId}}"
+        custom-class="custom-cell"
+      />
+    </van-cell-group>
+  </view>
 
   <view class="upload-section">
     <view class="upload-title">房屋证明</view>

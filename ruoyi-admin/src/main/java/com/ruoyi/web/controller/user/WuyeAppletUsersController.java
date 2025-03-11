@@ -218,7 +218,6 @@ public class WuyeAppletUsersController extends BaseController
     public byte[] getAvatar(@RequestParam String imagePath) {
 
         return ImageUtils.getImage(imagePath);
-
     }
 
     /**

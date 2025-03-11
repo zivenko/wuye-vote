@@ -1,23 +1,23 @@
 const userApi = require('../../api/user');
+const app = getApp();
 
 Page({
   data: {
-    fileList: [], // 房屋证明图片列表
-    ownerName: '', // 业主姓名
-    ownerIdNumber: '', // 业主身份证号
-    loading: false, // 提交按钮loading状态
-
-    // 房屋选择相关
-    districtId: '', // 小区ID
-    districtName: '', // 小区名称
-    buildingId: '', // 楼栋ID
-    buildingName: '', // 楼栋名称
-    unitId: '', // 单元ID
-    unitName: '', // 单元名称
-    houseId: '', // 房屋ID
-    roomNumber: '', // 房间号
-
-    // 选择器相关
+    baseURL: app.globalData.baseUrl,
+    isEdit: false,
+    houseId: '',
+    districtId: '',
+    buildingId: '',
+    unitId: '',
+    roomNumber: '',
+    certificate: '',
+    districtName: '',
+    buildingName: '',
+    unitName: '',
+    type: '',
+    area: '',
+    fileList: [],
+    loading: false,
     showDistrictPicker: false,
     showBuildingPicker: false,
     showUnitPicker: false,
@@ -26,11 +26,83 @@ Page({
     buildingList: [],
     unitList: [],
     roomList: [],
-    columns: []
+    columns: [],
+    checkId: ''
   },
 
-  onLoad() {
-    this.loadDistrictList();
+  onLoad(options) {
+    if (options) {
+      this.setData({
+        isEdit: options.isEdit === 'true',
+        houseId: options.houseId || '',
+        checkId: options.checkId || ''
+      });
+
+      // 如果是编辑模式且有房屋ID，先获取房屋详情
+      if (options.isEdit === 'true' && options.houseId) {
+        this.loadHouseDetail(options.houseId);
+      }
+    }
+  },
+
+  // 加载房屋详情
+  async loadHouseDetail(houseId) {
+    try {
+      const res = await userApi.getHouseDetail(houseId);
+      console.log('房屋详情:', res);
+      
+      if (res.code === 200 && res.data) {
+        const house = res.data;
+        
+        // 设置房屋基本信息
+        this.setData({
+          districtId: house.districtId,
+          buildingId: house.buildingId,
+          unitId: house.unitId,
+          roomNumber: house.roomNumber,
+          districtName: house.districtName,
+          buildingName: house.buildingName,
+          unitName: house.unitName,
+          type: house.type,
+          area: house.area
+        });
+
+        // 如果有证书图片，添加到文件列表
+        if (house.certificate) {
+          this.setData({
+            certificate: house.certificate,
+            fileList: [{
+              url: `${this.data.baseURL}/system/check/certificate?imagePath=${house.certificate}`,
+              name: '房屋证明',
+              isImage: true
+            }]
+          });
+        }
+
+        // 加载相关选项列表
+        await this.loadDistrictList();
+        if (house.districtId) {
+          await this.loadBuildingList(house.districtId);
+        }
+        if (house.buildingId) {
+          await this.loadUnitList(house.buildingId);
+        }
+        if (house.unitId) {
+          await this.loadRoomList(house.unitId);
+        }
+      } else {
+        wx.showToast({
+          title: res.msg || '获取房屋信息失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      console.error('获取房屋信息失败:', error);
+      wx.showToast({
+        title: '获取房屋信息失败',
+        icon: 'none'
+      });
+    }
   },
 
   // 加载小区列表
@@ -67,7 +139,7 @@ Page({
   async loadBuildingList(districtId) {
     try {
       const res = await userApi.getBuildingList(districtId);
-      console.log('楼栋列表返回数据:', res);
+      console.log('楼栋列表返回数据:', res, districtId);
       if (res.code === 200 && res.rows) {
         const buildings = res.rows.map(item => ({
           text: item.name,
@@ -209,9 +281,13 @@ Page({
   // 小区选择器确认
   onDistrictPickerConfirm(event) {
     const { value, text } = event.detail;
+    const { name, id } = value;
+
+    console.log('小区选择器确认:', value, text);
+
     this.setData({
-      districtId: value,
-      districtName: text,
+      districtId: id,
+      districtName: name,
       buildingId: '',
       buildingName: '',
       unitId: '',
@@ -220,40 +296,43 @@ Page({
       roomNumber: '',
       showDistrictPicker: false
     });
-    this.loadBuildingList(value);
+    this.loadBuildingList(id);
   },
 
   // 楼栋选择器确认
   onBuildingPickerConfirm(event) {
     const { value, text } = event.detail;
+    const { name, id } = value;
+
     this.setData({
-      buildingId: value,
-      buildingName: text,
+      buildingId: id,
+      buildingName: name,
       unitId: '',
       unitName: '',
       houseId: '',
       roomNumber: '',
       showBuildingPicker: false
     });
-    this.loadUnitList(value);
+    this.loadUnitList(id);
   },
 
   // 单元选择器确认
   onUnitPickerConfirm(event) {
     const { value, text } = event.detail;
+    const { name, id } = value;
     this.setData({
-      unitId: value,
-      unitName: text,
+      unitId: id,
+      unitName: name,
       houseId: '',
       roomNumber: '',
       showUnitPicker: false
     });
-    this.loadRoomList(value);
+    this.loadRoomList(id);
   },
 
   // 房间选择器确认
   onRoomPickerConfirm(event) {
-    const { value, text } = event.detail;
+    const { value, text } = event.detail.value;
     this.setData({
       houseId: value,
       roomNumber: text,
@@ -275,47 +354,12 @@ Page({
     this.setData({ showRoomPicker: false });
   },
 
-  // 业主姓名变更
-  onOwnerNameChange(event) {
-    this.setData({
-      ownerName: event.detail
-    });
-  },
-
-  // 身份证号变更
-  onOwnerIdNumberChange(event) {
-    this.setData({
-      ownerIdNumber: event.detail
-    });
-  },
-
   // 上传图片
   afterRead(event) {
     const { file } = event.detail;
     const { fileList = [] } = this.data;
-    fileList.push({ ...file, status: 'uploading', message: '上传中' });
+    fileList.push({ ...file, status: 'done' });
     this.setData({ fileList });
-    
-    // 上传图片
-    wx.uploadFile({
-      url: getApp().globalData.baseUrl + '/system/check/upload',
-      filePath: file.url,
-      name: 'file',
-      header: {
-        'Authorization': wx.getStorageSync('token')
-      },
-      success: (res) => {
-        const { fileList } = this.data;
-        fileList[fileList.length - 1].status = 'done';
-        fileList[fileList.length - 1].url = JSON.parse(res.data).data;
-        this.setData({ fileList });
-      },
-      fail: () => {
-        const { fileList } = this.data;
-        fileList[fileList.length - 1].status = 'failed';
-        this.setData({ fileList });
-      }
-    });
   },
 
   // 删除图片
@@ -329,27 +373,16 @@ Page({
   // 提交表单
   async submitForm() {
     const { 
-      ownerName, 
-      ownerIdNumber, 
       fileList,
       houseId,
-      districtName,
-      buildingName,
-      unitName,
-      roomNumber
+      isEdit,
+      checkId,
+      certificate
     } = this.data;
     
     // 表单验证
     if (!houseId) {
       wx.showToast({ title: '请选择房屋', icon: 'none' });
-      return;
-    }
-    if (!ownerName) {
-      wx.showToast({ title: '请输入业主姓名', icon: 'none' });
-      return;
-    }
-    if (!ownerIdNumber) {
-      wx.showToast({ title: '请输入身份证号', icon: 'none' });
       return;
     }
     if (fileList.length === 0) {
@@ -360,23 +393,73 @@ Page({
     this.setData({ loading: true });
 
     try {
-      const res = await userApi.bindHouse({
-        houseId,
-        ownerName,
-        ownerIdNumber,
-        certificate: fileList[0].url
-      });
+      if (isEdit) {
+        // 更新模式
+        if (!checkId) {
+          wx.showToast({ title: '缺少审核记录ID', icon: 'none' });
+          return;
+        }
 
-      if (res.code === 200) {
-        wx.showToast({ title: '提交成功', icon: 'success' });
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 1500);
+        // 判断是否更换了图片
+        const isNewFile = !fileList[0].url.startsWith('http');
+        
+        if (isNewFile) {
+          // 如果上传了新图片，使用新图片路径
+          const result = await userApi.updateHouseCheck(checkId, houseId, fileList[0].url);
+          if (result.code === 200) {
+            wx.showToast({ title: '修改成功', icon: 'success' });
+            setTimeout(() => {
+              wx.navigateBack();
+            }, 1500);
+          } else {
+            wx.showToast({ title: result.msg || '修改失败', icon: 'none' });
+          }
+        } else {
+          // 如果没有更换图片，使用普通的POST请求
+          const result = await userApi.updateHouseCheckWithoutFile(checkId, houseId);
+          if (result.code === 200) {
+            wx.showToast({ title: '修改成功', icon: 'success' });
+            setTimeout(() => {
+              wx.navigateBack();
+            }, 1500);
+          } else {
+            wx.showToast({ title: result.msg || '修改失败', icon: 'none' });
+          }
+        }
       } else {
-        wx.showToast({ title: res.msg || '提交失败', icon: 'none' });
+        // 新增模式
+        wx.uploadFile({
+          url: getApp().globalData.baseUrl + '/system/check',
+          filePath: fileList[0].url,
+          name: 'file',
+          formData: {
+            houseId: String(houseId)
+          },
+          header: {
+            'Authorization': wx.getStorageSync('token')
+          },
+          success: (res) => {
+            const result = JSON.parse(res.data);
+            if (result.code === 200) {
+              wx.showToast({ title: '提交成功', icon: 'success' });
+              setTimeout(() => {
+                wx.navigateBack();
+              }, 1500);
+            } else {
+              wx.showToast({ title: result.msg || '提交失败', icon: 'none' });
+            }
+          },
+          fail: () => {
+            wx.showToast({ title: '提交失败', icon: 'none' });
+          }
+        });
       }
     } catch (error) {
-      wx.showToast({ title: '提交失败', icon: 'none' });
+      console.error('提交失败:', error);
+      wx.showToast({ 
+        title: isEdit ? '修改失败' : '提交失败', 
+        icon: 'none' 
+      });
     } finally {
       this.setData({ loading: false });
     }

@@ -4,6 +4,35 @@
   min-height: 100vh;
 }
 
+.cell-group-wrapper {
+  margin: 0 0 20rpx 0;
+  background: #fff;
+  width: 100%;
+}
+
+.custom-cell {
+  width: 100% !important;
+  height: 108rpx !important;
+  padding: 20rpx 32rpx !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+}
+
+.custom-cell .van-cell__title {
+  flex: none !important;
+  width: 180rpx !important;
+  font-size: 28rpx !important;
+}
+
+.custom-cell .van-cell__value {
+  flex: 1 !important;
+  text-align: right !important;
+  margin-right: 10rpx !important;
+  color: #969799 !important;
+  font-size: 28rpx !important;
+}
+
 .upload-section {
   margin-top: 20rpx;
   padding: 30rpx;

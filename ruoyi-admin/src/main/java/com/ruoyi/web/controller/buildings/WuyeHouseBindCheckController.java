@@ -3,27 +3,24 @@ package com.ruoyi.web.controller.buildings;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
+import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.core.domain.entity.wuye.user.WuyeAppletUsers;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.file.FileUploadUtils;
+import com.ruoyi.common.utils.file.ImageUtils;
 import com.ruoyi.wuye.domain.buildings.WuyeHouseBindCheck;
 import com.ruoyi.wuye.service.buildings.IWuyeHouseBindCheckService;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
-import com.ruoyi.common.
-core.domain.AjaxResult;
+import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 房屋绑定审核Controller
@@ -74,26 +71,64 @@ public class WuyeHouseBindCheckController extends BaseController
     }
 
     /**
-     * 新增房屋绑定审核
+     * 新增房屋绑定审核（含文件上传）
      */
     @Log(title = "房屋绑定审核", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody WuyeHouseBindCheck wuyeHouseBindCheck)
+    public AjaxResult add(@RequestParam("file") MultipartFile file, @RequestParam("houseId") Long houseId) throws Exception
     {
+        // 上传文件
+        String filePath = FileUploadUtils.upload(RuoYiConfig.getUploadPath(), file);
+
+        // 创建审核记录
+        WuyeHouseBindCheck wuyeHouseBindCheck = new WuyeHouseBindCheck();
+        wuyeHouseBindCheck.setHouseId(houseId);
+        wuyeHouseBindCheck.setCertificate(filePath);
+        wuyeHouseBindCheck.setCheckStatus("uncheck"); // 设置初始状态为未审核
+
+        // 设置小程序用户ID
         WuyeAppletUsers appletUser = SecurityUtils.getLoginUser().getAppletUser();
         wuyeHouseBindCheck.setAppletId(appletUser.getAppletId());
+
         return toAjax(wuyeHouseBindCheckService.insertWuyeHouseBindCheck(wuyeHouseBindCheck));
     }
 
     /**
-     * 修改房屋绑定审核
+     * 修改房屋绑定审核（含文件上传）
      */
-    @PreAuthorize("@ss.hasPermi('system:check:edit')")
     @Log(title = "房屋绑定审核", businessType = BusinessType.UPDATE)
-    @PutMapping
-    public AjaxResult edit(@RequestBody WuyeHouseBindCheck wuyeHouseBindCheck)
+    @PostMapping("/update")
+    public AjaxResult update(@RequestParam(value = "file", required = false) MultipartFile file,
+                            @RequestParam("houseId") Long houseId,
+                            @RequestParam("checkId") Long checkId) throws Exception
     {
-        return toAjax(wuyeHouseBindCheckService.updateWuyeHouseBindCheck(wuyeHouseBindCheck));
+        // 获取现有的审核记录
+        WuyeHouseBindCheck existingCheck = wuyeHouseBindCheckService.selectWuyeHouseBindCheckByCheckId(checkId);
+        if (existingCheck == null)
+        {
+            return error("未找到对应的审核记录");
+        }
+
+        // 更新房屋ID
+        existingCheck.setHouseId(houseId);
+
+        // 如果上传了新文件，处理文件上传
+        if (file != null && !file.isEmpty())
+        {
+            String filePath = FileUploadUtils.upload(RuoYiConfig.getUploadPath(), file);
+            existingCheck.setCertificate(filePath);
+        }
+
+        // 重置审核状态为未审核
+        existingCheck.setCheckStatus("uncheck");
+        existingCheck.setCheckErrorMsg(null);
+        existingCheck.setCheckTime(null);
+
+        // 设置小程序用户ID
+        WuyeAppletUsers appletUser = SecurityUtils.getLoginUser().getAppletUser();
+        existingCheck.setAppletId(appletUser.getAppletId());
+
+        return toAjax(wuyeHouseBindCheckService.updateWuyeHouseBindCheck(existingCheck));
     }
 
     /**
@@ -105,5 +140,14 @@ public class WuyeHouseBindCheckController extends BaseController
     public AjaxResult remove(@PathVariable Long[] checkIds)
     {
         return toAjax(wuyeHouseBindCheckService.deleteWuyeHouseBindCheckByCheckIds(checkIds));
+    }
+
+    /**
+     * 获取房产证明图片
+     */
+    @GetMapping(value = "/certificate",produces = {MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE})
+    public byte[] getAvatar(@RequestParam String imagePath) {
+
+        return ImageUtils.getImage(imagePath);
     }
 }

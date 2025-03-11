@@ -1,32 +1,61 @@
-<button class="add-house" bindtap="onAddHouse">
+<view class="page">
+  <view class="add-house" bindtap="navigateToBindHouse">
     <text class="plus">+</text>
     <text>添加房屋</text>
-</button>
-<view class="container">
-  <block wx:if="{{houses.length > 0}}">
-    <view class="house-list">
-      <view class="house-item" wx:for="{{houses}}" wx:key="houseId">
-        <view class="house-info">
-          <view class="house-title">{{item.districtName}}{{item.buildingName}}{{item.unitName}}{{item.roomNumber}}</view>
-          <view class="house-status" wx:if="{{item.checkStatus}}">
-            <text class="status-text {{item.checkStatus === 'uncheck' ? 'pending' : 'failed'}}">
-              {{item.checkStatus === 'uncheck' ? '审核中' : '审核失败'}}
-            </text>
-            <text class="error-msg" wx:if="{{item.checkStatus === 'fail'}}">{{item.checkErrorMsg}}</text>
-          </view>
-          <view class="house-action" wx:if="{{!item.checkStatus}}">
-            <van-button size="small" type="danger" bind:click="unbindHouse" data-house-id="{{item.houseId}}">解绑</van-button>
+  </view>
+
+  <view class="container">
+    <block wx:if="{{houses.length > 0}}">
+      <view class="house-list">
+        <view class="house-item" wx:for="{{houses}}" wx:key="houseId">
+          <view class="house-info">
+            <view class="house-title">{{item.districtName}}{{item.buildingName}}{{item.unitName}}{{item.roomNumber}}</view>
+            <view class="house-details">
+              <view class="house-type" wx:if="{{item.type}}">房屋类型：{{item.type}}</view>
+              <view class="house-area" wx:if="{{item.area}}">建筑面积：{{item.area}}㎡</view>
+            </view>
+            <view class="house-image">
+              <image wx:if="{{item.certificate}}" src="{{baseURL}}/system/check/certificate?imagePath={{item.certificate}}" mode="aspectFill"></image>
+              <view wx:else class="image-placeholder">
+                <van-icon name="photo-o" size="48rpx" />
+                <text>暂无图片</text>
+              </view>
+            </view>
+            <view class="house-status" wx:if="{{item.checkStatus}}">
+              <view class="status-left">
+                <van-tag custom-class="status-tag" type="{{item.checkStatus === 'uncheck' ? 'primary' : 'danger'}}">
+                  {{item.checkStatus === 'uncheck' ? '审核中' : '审核失败'}}
+                </van-tag>
+                <text class="error-msg" wx:if="{{item.checkStatus === 'fail'}}">{{item.checkErrorMsg}}</text>
+              </view>
+              <view class="status-right" wx:if="{{item.checkStatus === 'uncheck'}}">
+                <van-button 
+                  plain
+                  type="primary" 
+                  custom-class="edit-btn"
+                  bind:click="editHouse" 
+                  data-house="{{item}}"
+                >修改</van-button>
+              </view>
+            </view>
+            <view class="house-footer" wx:if="{{!item.checkStatus}}">
+              <van-button 
+                plain
+                type="danger" 
+                custom-class="edit-btn"
+                bind:click="unbindHouse" 
+                data-house-id="{{item.houseId}}"
+              >解绑</van-button>
+            </view>
           </view>
         </view>
       </view>
+    </block>
+    <view class="empty-state" wx:else>
+      <image class="empty-image" src="/static/images/empty-house.png" mode="aspectFit"></image>
+      <text class="empty-text">暂无绑定房屋</text>
     </view>
-  </block>
-  <view class="empty-state" wx:else>
-    <image class="empty-image" src="/static/images/empty-house.png" mode="aspectFit"></image>
-    <text class="empty-text">暂无绑定房屋</text>
   </view>
 
-  <view class="add-button">
-    <van-button type="primary" block icon="plus" bind:click="navigateToBindHouse">添加房屋</van-button>
-  </view>
+
 </view>

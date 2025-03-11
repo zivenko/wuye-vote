@@ -51,7 +51,6 @@ public class WuyeHousesController extends BaseController
     /**
      * 查询物业房屋列表
      */
-    @PreAuthorize("@ss.hasPermi('system:houses:list')")
     @GetMapping("/list")
     public TableDataInfo list(WuyeHouses wuyeHouses)
     {
@@ -103,6 +102,7 @@ public class WuyeHousesController extends BaseController
                 WuyeHouses house = wuyeHousesService.selectWuyeHousesByHouseId(check.getHouseId());
                 if (house != null) {
                     // 添加审核状态和失败原因到房屋对象
+                    house.setCertificate(check.getCertificate());
                     house.setCheckStatus(check.getCheckStatus());
                     house.setCheckErrorMsg(check.getCheckErrorMsg());
                     houses.add(house);
@@ -129,7 +129,6 @@ public class WuyeHousesController extends BaseController
     /**
      * 获取物业房屋详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:houses:query')")
     @GetMapping(value = "/{houseId}")
     public AjaxResult getInfo(@PathVariable("houseId") Long houseId)
     {
