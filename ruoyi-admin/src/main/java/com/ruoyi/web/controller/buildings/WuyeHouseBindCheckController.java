@@ -174,14 +174,22 @@ public class WuyeHouseBindCheckController extends BaseController
                 return error("未找到对应的审核记录");
             }
 
-            // 1. 更新房屋的绑定状态
+            // 1. 先检查房屋是否已被绑定
             WuyeHouses house = wuyeHousesService.selectWuyeHousesByHouseId(existingCheck.getHouseId());
-            if (house != null) {
-                house.setIsBind(1L);
-                wuyeHousesService.updateWuyeHouses(house);
+            if (house == null) {
+                return error("未找到对应的房屋信息");
+            }
+            
+            // 检查房屋绑定状态
+            if (house.getIsBind() != null && house.getIsBind() == 1L) {
+                return error("此房屋已被绑定，审核无效！");
             }
 
-            // 2. 更新用户的房屋绑定信息
+            // 2. 更新房屋的绑定状态
+            house.setIsBind(1L);
+            wuyeHousesService.updateWuyeHouses(house);
+
+            // 3. 更新用户的房屋绑定信息
             WuyeAppletUsers appletUser = wuyeAppletUsersService.selectWuyeAppletUsersByAppletId(existingCheck.getAppletId());
             if (appletUser != null) {
                 String currentHouseIds = appletUser.getHouseIds();
