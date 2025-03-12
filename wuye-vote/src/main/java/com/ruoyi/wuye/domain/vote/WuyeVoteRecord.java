@@ -33,17 +33,29 @@ public class WuyeVoteRecord extends BaseEntity
     private String choices;
 
     /** 投票时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "投票时间", width = 30, dateFormat = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "投票时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date voteTime;
 
     /** 投票状态(有效: 1/无效: 0) */
-    @Excel(name = "投票状态(有效: 1/无效: 0)")
+    @Excel(name = "投票状态", readConverterExp = "有效=1,无效=0")
     private Long status;
 
     /** 通过管理员投票 */
-    @Excel(name = "通过管理员投票")
+    @Excel(name = "是否跳票", readConverterExp = "是=1,否=-1")
     private Long byAdmin;
+
+    /** 用户姓名 */
+    @Excel(name = "用户姓名")
+    private String name;
+
+    /** 用户手机号 */
+    @Excel(name = "手机号")
+    private String mobile;
+
+    /** 投票模板标题 */
+    @Excel(name = "投票模板")
+    private String title;
 
     public void setVoteId(Long voteId) 
     {
@@ -115,6 +127,30 @@ public class WuyeVoteRecord extends BaseEntity
         return byAdmin;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
@@ -127,6 +163,9 @@ public class WuyeVoteRecord extends BaseEntity
             .append("byAdmin", getByAdmin())
             .append("createTime", getCreateTime())
             .append("updateTime", getUpdateTime())
+            .append("name", getName())
+            .append("mobile", getMobile())
+            .append("title", getTitle())
             .toString();
     }
 }

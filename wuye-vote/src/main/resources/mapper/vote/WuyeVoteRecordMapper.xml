@@ -14,22 +14,31 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="byAdmin"    column="by_admin"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="name"    column="name"    />
+        <result property="mobile"    column="mobile"    />
+        <result property="title"    column="title"    />
     </resultMap>
 
     <sql id="selectWuyeVoteRecordVo">
-        select vote_id, applet_id, template_id, choices, vote_time, status, by_admin, create_time, update_time from wuye_vote_record
+        select r.vote_id, r.applet_id, r.template_id, r.choices, r.vote_time, r.status, r.by_admin, r.create_time, r.update_time,
+        u.name, u.mobile, t.title
+        from wuye_vote_record r
+        left join wuye_applet_users u on r.applet_id = u.applet_id
+        left join wuye_vote_template t on r.template_id = t.template_id
     </sql>
 
     <select id="selectWuyeVoteRecordList" parameterType="WuyeVoteRecord" resultMap="WuyeVoteRecordResult">
         <include refid="selectWuyeVoteRecordVo"/>
         <where>  
-            <if test="appletId != null "> and applet_id = #{appletId}</if>
-            <if test="templateId != null "> and template_id = #{templateId}</if>
-            <if test="choices != null  and choices != ''"> and choices = #{choices}</if>
-            <if test="voteTime != null "> and vote_time = #{voteTime}</if>
-            <if test="status != null "> and status = #{status}</if>
-            <if test="byAdmin != null "> and by_admin = #{byAdmin}</if>
+            <if test="name != null and name != ''"> and u.name like concat('%', #{name}, '%')</if>
+            <if test="mobile != null and mobile != ''"> and u.mobile like concat('%', #{mobile}, '%')</if>
+            <if test="title != null and title != ''"> and t.title like concat('%', #{title}, '%')</if>
+            <if test="choices != null and choices != ''"> and r.choices = #{choices}</if>
+            <if test="voteTime != null "> and r.vote_time = #{voteTime}</if>
+            <if test="status != null "> and r.status = #{status}</if>
+            <if test="byAdmin != null "> and r.by_admin = #{byAdmin}</if>
         </where>
+        order by r.create_time desc
     </select>
     
     <select id="selectWuyeVoteRecordByVoteId" parameterType="Long" resultMap="WuyeVoteRecordResult">

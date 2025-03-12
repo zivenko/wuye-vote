@@ -1,26 +1,26 @@
 <template>
   <div class="app-container">
     <el-form v-show="showSearch" ref="queryForm" :model="queryParams" size="small" :inline="true" label-width="68px">
-      <el-form-item label="用户ID" prop="appletId">
+      <el-form-item label="用户姓名" prop="name">
         <el-input
-          v-model="queryParams.appletId"
-          placeholder="请输入用户ID"
+          v-model="queryParams.name"
+          placeholder="请输入用户姓名"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="模板ID" prop="templateId">
+      <el-form-item label="手机号" prop="mobile">
         <el-input
-          v-model="queryParams.templateId"
-          placeholder="请输入模板ID"
+          v-model="queryParams.mobile"
+          placeholder="请输入手机号"
           clearable
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="用户选择的选项" prop="choices">
+      <el-form-item label="投票模板" prop="title">
         <el-input
-          v-model="queryParams.choices"
-          placeholder="请输入用户选择的选项"
+          v-model="queryParams.title"
+          placeholder="请输入投票模板"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -29,18 +29,26 @@
         <el-date-picker
           v-model="queryParams.voteTime"
           clearable
-          type="date"
-          value-format="yyyy-MM-dd"
+          type="datetime"
+          value-format="yyyy-MM-dd HH:mm:ss"
           placeholder="请选择投票时间"
         />
       </el-form-item>
-      <el-form-item label="通过管理员投票" prop="byAdmin">
-        <el-input
-          v-model="queryParams.byAdmin"
-          placeholder="请输入通过管理员投票"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+      <el-form-item label="投票状态" prop="status">
+        <el-select v-model="queryParams.status" placeholder="请选择投票状态" clearable>
+          <el-option
+            v-for="dict in dict.type.vote_status"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="是否跳票" prop="byAdmin">
+        <el-select v-model="queryParams.byAdmin" placeholder="请选择是否跳票" clearable>
+          <el-option label="是" :value="1" />
+          <el-option label="否" :value="-1" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
@@ -96,17 +104,25 @@
 
     <el-table v-loading="loading" :data="recordList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="投票记录ID" align="center" prop="voteId" />
-      <el-table-column label="用户ID" align="center" prop="appletId" />
-      <el-table-column label="模板ID" align="center" prop="templateId" />
-      <el-table-column label="用户选择的选项" align="center" prop="choices" />
+      <el-table-column label="用户姓名" align="center" prop="name" />
+      <el-table-column label="手机号" align="center" prop="mobile" />
+      <el-table-column label="投票模板" align="center" prop="title" />
+      <el-table-column label="投票选项" align="center" prop="choices" />
       <el-table-column label="投票时间" align="center" prop="voteTime" width="180">
         <template slot-scope="scope">
-          <span>{{ parseTime(scope.row.voteTime, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.voteTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="投票状态(有效: 1/无效: 0)" align="center" prop="status" />
-      <el-table-column label="通过管理员投票" align="center" prop="byAdmin" />
+      <el-table-column label="投票状态" align="center" prop="status">
+        <template slot-scope="scope">
+          <dict-tag :options="dict.type.vote_status" :value="scope.row.status" />
+        </template>
+      </el-table-column>
+      <el-table-column label="是否跳票" align="center" prop="byAdmin">
+        <template slot-scope="scope">
+          <span>{{ scope.row.byAdmin === -1 ? '否' : '是' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -202,9 +218,11 @@
 <script>
 import { listRecord, getRecord, delRecord, addRecord, updateRecord, searchAppletUser, listTemplateByHouseIds } from '@/api/vote/record'
 import store from '@/store'
+import { parseTime } from '@/utils/ruoyi'
 
 export default {
   name: 'Record',
+  dicts: ['vote_status'],
   data() {
     return {
       // 遮罩层
@@ -229,8 +247,9 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        appletId: null,
-        templateId: null,
+        name: null,
+        mobile: null,
+        title: null,
         choices: null,
         voteTime: null,
         status: null,
@@ -320,8 +339,9 @@ export default {
       this.queryParams = {
         pageNum: 1,
         pageSize: 10,
-        appletId: null,
-        templateId: null,
+        name: null,
+        mobile: null,
+        title: null,
         choices: null,
         voteTime: null,
         status: null,
