@@ -57,7 +57,7 @@
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-        >新增</el-button>
+        >跳票</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -312,10 +312,29 @@ export default {
         this.loading = false
       })
     },
-    // 取消按钮
+    /** 重置按钮操作 */
+    resetQuery() {
+      if (this.$refs.queryForm) {
+        this.$refs.queryForm.resetFields()
+      }
+      this.queryParams = {
+        pageNum: 1,
+        pageSize: 10,
+        appletId: null,
+        templateId: null,
+        choices: null,
+        voteTime: null,
+        status: null,
+        byAdmin: null
+      }
+      this.handleQuery()
+    },
+    /** 取消按钮 */
     cancel() {
       this.open = false
-      this.reset()
+      this.$nextTick(() => {
+        this.reset()
+      })
     },
     /** 表单重置 */
     reset() {
@@ -343,19 +362,27 @@ export default {
       }
       this.currentAppletId = null
       this.currentTemplate = null
-      this.resetForm('userForm')
-      this.resetForm('templateForm')
-      this.resetForm('voteForm')
+      this.choiceOptions = []
+      this.remainingChoices = 0
+      this.templateOptions = []
+
+      // 安全地重置表单
+      this.$nextTick(() => {
+        if (this.$refs.userForm) {
+          this.$refs.userForm.resetFields()
+        }
+        if (this.$refs.templateForm) {
+          this.$refs.templateForm.resetFields()
+        }
+        if (this.$refs.voteForm) {
+          this.$refs.voteForm.resetFields()
+        }
+      })
     },
     /** 搜索按钮操作 */
     handleQuery() {
       this.queryParams.pageNum = 1
       this.getList()
-    },
-    /** 重置按钮操作 */
-    resetQuery() {
-      this.resetForm('queryForm')
-      this.handleQuery()
     },
     // 多选框选中数据
     handleSelectionChange(selection) {
@@ -365,9 +392,11 @@ export default {
     },
     /** 新增按钮操作 */
     handleAdd() {
-      this.reset()
-      this.open = true
       this.title = '添加投票记录'
+      this.open = true
+      this.$nextTick(() => {
+        this.reset()
+      })
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -427,6 +456,13 @@ export default {
               this.activeStep = 1
             } else {
               this.$modal.msgError('未找到该用户信息')
+            }
+          }).catch(error => {
+            // 处理错误情况
+            if (error.message) {
+              this.$modal.msgError(error.message)
+            } else {
+              this.$modal.msgError('搜索用户失败')
             }
           })
         }
@@ -508,6 +544,13 @@ export default {
             this.$modal.msgSuccess('投票成功')
             this.open = false
             this.getList()
+          }).catch(error => {
+            // 处理错误情况
+            if (error.message) {
+              this.$modal.msgError(error.message)
+            } else {
+              this.$modal.msgError('提交投票失败')
+            }
           })
         }
       })
