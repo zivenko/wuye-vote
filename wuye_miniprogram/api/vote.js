@@ -7,7 +7,7 @@ const getVoteTemplateList = (params) => {
 
 // 获取投票模板详情
 const getVoteTemplateDetail = (templateId) => {
-  return http.get(`/system/template/detail/${templateId}`);
+  return http.get(`/system/record/detail/${templateId}`);
 };
 
 // 获取用户可参与的投票列表

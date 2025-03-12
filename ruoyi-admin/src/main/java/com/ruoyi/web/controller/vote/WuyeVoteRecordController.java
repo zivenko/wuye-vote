@@ -1,6 +1,8 @@
 package com.ruoyi.web.controller.vote;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import javax.servlet.http.HttpServletResponse;
 
 import com.ruoyi.wuye.domain.vote.WuyeVoteRecord;
@@ -24,6 +26,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.wuye.domain.vote.WuyeVoteTemplate;
 import com.ruoyi.wuye.service.vote.IWuyeVoteTemplateService;
+import com.ruoyi.common.utils.SecurityUtils;
 
 /**
  * 投票记录Controller
@@ -140,5 +143,35 @@ public class WuyeVoteRecordController extends BaseController
         voteRecord.setByAdmin(-1L); // 用户投票
 
         return toAjax(wuyeVoteRecordService.insertWuyeVoteRecord(voteRecord));
+    }
+
+    /**
+     * 获取投票详情（包含用户投票记录）
+     */
+    @GetMapping("/detail/{templateId}")
+    public AjaxResult getVoteDetail(@PathVariable("templateId") Long templateId)
+    {
+        // 获取当前登录用户的appletId
+        Long appletId = SecurityUtils.getLoginUser().getAppletUser().getAppletId();
+        
+        // 查询用户的投票记录
+        WuyeVoteRecord query = new WuyeVoteRecord();
+        query.setTemplateId(templateId);
+        query.setAppletId(appletId);
+        query.setStatus(1L); // 有效票
+        List<WuyeVoteRecord> records = wuyeVoteRecordService.selectWuyeVoteRecordList(query);
+        
+        // 查询投票模板信息
+        WuyeVoteTemplate template = wuyeVoteTemplateService.selectWuyeVoteTemplateByTemplateId(templateId);
+        if (template == null) {
+            return error("投票模板不存在");
+        }
+
+        // 构建返回数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("template", template);
+        data.put("userChoice", records.isEmpty() ? null : records.get(0).getChoices());
+        
+        return success(data);
     }
 }

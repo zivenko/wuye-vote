@@ -6,7 +6,8 @@ Page({
     template: null,
     options: [],
     selectedOption: '',
-    isLoggedIn: false
+    isLoggedIn: false,
+    hasVoted: false
   },
 
   onLoad(options) {
@@ -60,7 +61,7 @@ Page({
       wx.hideLoading();
       
       if (res.code === 200 && res.data) {
-        const template = res.data;
+        const { template, userChoice } = res.data;
         
         // 解析选项数据
         let choicesObj = {};
@@ -79,7 +80,9 @@ Page({
               // 格式化日期显示
               endTime: template.endTime ? template.endTime.split(' ')[0] : '未设置'
             },
-            options
+            options,
+            hasVoted: !!userChoice,
+            selectedOption: userChoice || ''
           });
         } catch (e) {
           console.error('解析选项数据失败:', e);

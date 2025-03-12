@@ -22,16 +22,28 @@
   <block wx:if="{{template.status === 1}}">
     <block wx:if="{{isLoggedIn}}">
       <view class="options-container">
-        <text class="options-title">请选择您支持的方案：</text>
-        <radio-group class="radio-group" bindchange="handleOptionChange">
+        <text class="options-title" wx:if="{{!hasVoted}}">请选择您支持的方案：</text>
+        <text class="options-title" wx:else>您已投票，您的选择是：</text>
+        <radio-group class="radio-group" bindchange="handleOptionChange" wx:if="{{!hasVoted}}">
           <label class="radio-item" wx:for="{{options}}" wx:key="value">
-            <radio value="{{item.value}}" color="#007AFF"/>
+            <radio value="{{item.value}}" color="#007AFF" checked="{{item.value === selectedOption}}"/>
             <text>方案{{item.label}}: {{item.content}}</text>
           </label>
         </radio-group>
+        <view class="option-list" wx:else>
+          <view class="option-item {{item.value === selectedOption ? 'selected' : ''}}" 
+                wx:for="{{options}}" 
+                wx:key="value">
+            <text>方案{{item.label}}: {{item.content}}</text>
+            <text class="selected-mark" wx:if="{{item.value === selectedOption}}">(已选)</text>
+          </view>
+        </view>
       </view>
 
-      <button class="submit-btn" bindtap="handleSubmit">提交投票</button>
+      <button class="submit-btn" bindtap="handleSubmit" wx:if="{{!hasVoted}}">提交投票</button>
+      <view class="voted-tip" wx:else>
+        <text>您已完成投票，感谢参与！</text>
+      </view>
     </block>
     <block wx:else>
       <view class="login-tip">

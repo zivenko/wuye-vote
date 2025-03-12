@@ -186,7 +186,6 @@ public class WuyeAppletUsersController extends BaseController
     /**
      * 上传头像
      */
-    @Log(title = "小程序用户头像", businessType = BusinessType.UPDATE)
     @PostMapping("/applet/avatar")
     public AjaxResult avatar(@RequestParam("avatarfile") MultipartFile file) throws Exception
     {

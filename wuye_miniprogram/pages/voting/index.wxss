@@ -78,16 +78,43 @@ page {
   margin-bottom: 24rpx;
 }
 
-.radio-group {
+.option-list {
+  margin-top: 20rpx;
+}
+
+.option-item {
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  background: #f8f8f8;
+  border-radius: 8rpx;
+  font-size: 28rpx;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.option-item.selected {
+  background-color: #e6f3ff;
+  border: 1px solid #007AFF;
+}
+
+.selected-mark {
+  color: #007AFF;
+  font-size: 24rpx;
+  margin-left: 20rpx;
 }
 
 .radio-item {
   display: flex;
   align-items: center;
-  padding: 20rpx 0;
-  font-size: 28rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  background: #f8f8f8;
+  border-radius: 8rpx;
+}
+
+.radio-item radio {
+  margin-right: 20rpx;
 }
 
 .submit-btn {
@@ -105,4 +132,23 @@ page {
   text-align: center;
   font-size: 24rpx;
   color: #999;
+}
+
+.voted-option {
+  margin: 20rpx 0;
+  padding: 20rpx;
+}
+
+.voted-option .option-item.selected {
+  background-color: #e6f3ff;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  border: 1px solid #007AFF;
+}
+
+.voted-tip {
+  text-align: center;
+  color: #007AFF;
+  margin: 30rpx 0;
+  font-size: 28rpx;
 }
