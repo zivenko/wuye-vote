@@ -24,6 +24,8 @@ import com.ruoyi.common.core.page.TableDataInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ruoyi.wuye.service.buildings.IWuyeHousesService;
+import com.ruoyi.wuye.service.user.IWuyeAppletUsersService;
+import com.ruoyi.common.utils.DateUtils;
 
 /**
  * 房屋绑定审核Controller
@@ -40,6 +42,9 @@ public class WuyeHouseBindCheckController extends BaseController
 
     @Autowired
     private IWuyeHousesService wuyeHousesService;
+
+    @Autowired
+    private IWuyeAppletUsersService wuyeAppletUsersService;
 
     /**
      * 查询房屋绑定审核列表
@@ -110,8 +115,9 @@ public class WuyeHouseBindCheckController extends BaseController
     }
 
     /**
-     * 修改房屋绑定审核（含文件上传）
+     * 修改房屋绑定审核
      */
+    @PreAuthorize("@ss.hasPermi('system:check:edit')")
     @Log(title = "房屋绑定审核", businessType = BusinessType.UPDATE)
     @PostMapping("/update")
     public AjaxResult update(@RequestParam(value = "file", required = false) MultipartFile file,
@@ -153,6 +159,66 @@ public class WuyeHouseBindCheckController extends BaseController
     }
 
     /**
+     * 审核房屋绑定申请
+     */
+    @PreAuthorize("@ss.hasPermi('system:check:edit')")
+    @Log(title = "房屋绑定审核", businessType = BusinessType.UPDATE)
+    @PutMapping
+    public AjaxResult audit(@RequestBody WuyeHouseBindCheck wuyeHouseBindCheck)
+    {
+        // 如果是审核通过
+        if ("success".equals(wuyeHouseBindCheck.getCheckStatus())) {
+            // 获取完整的审核记录信息
+            WuyeHouseBindCheck existingCheck = wuyeHouseBindCheckService.selectWuyeHouseBindCheckByCheckId(wuyeHouseBindCheck.getCheckId());
+            if (existingCheck == null) {
+                return error("未找到对应的审核记录");
+            }
+
+            // 1. 更新房屋的绑定状态
+            WuyeHouses house = wuyeHousesService.selectWuyeHousesByHouseId(existingCheck.getHouseId());
+            if (house != null) {
+                house.setIsBind(1L);
+                wuyeHousesService.updateWuyeHouses(house);
+            }
+
+            // 2. 更新用户的房屋绑定信息
+            WuyeAppletUsers appletUser = wuyeAppletUsersService.selectWuyeAppletUsersByAppletId(existingCheck.getAppletId());
+            if (appletUser != null) {
+                String currentHouseIds = appletUser.getHouseIds();
+                String newHouseId = String.valueOf(existingCheck.getHouseId());
+                
+                // 如果当前没有绑定房屋
+                if (currentHouseIds == null || currentHouseIds.isEmpty()) {
+                    appletUser.setHouseIds(newHouseId);
+                } 
+                // 如果已有绑定房屋，则追加
+                else {
+                    // 检查是否已经包含该房屋ID
+                    String[] houseIds = currentHouseIds.split(",");
+                    boolean contains = false;
+                    for (String id : houseIds) {
+                        if (id.equals(newHouseId)) {
+                            contains = true;
+                            break;
+                        }
+                    }
+                    // 如果不包含，则追加
+                    if (!contains) {
+                        appletUser.setHouseIds(currentHouseIds + "," + newHouseId);
+                    }
+                }
+                wuyeAppletUsersService.updateWuyeAppletUsers(appletUser);
+            }
+        }
+
+        // 设置审核时间和审核人
+        wuyeHouseBindCheck.setCheckTime(DateUtils.getNowDate());
+        wuyeHouseBindCheck.setUserId(SecurityUtils.getUserId());
+
+        return toAjax(wuyeHouseBindCheckService.updateWuyeHouseBindCheck(wuyeHouseBindCheck));
+    }
+
+    /**
      * 删除房屋绑定审核
      */
     @PreAuthorize("@ss.hasPermi('system:check:remove')")
@@ -170,16 +236,5 @@ public class WuyeHouseBindCheckController extends BaseController
     public byte[] getAvatar(@RequestParam String imagePath) {
 
         return ImageUtils.getImage(imagePath);
-    }
-
-    /**
-     * 修改房屋绑定审核
-     */
-    @PreAuthorize("@ss.hasPermi('system:check:edit')")
-    @Log(title = "房屋绑定审核", businessType = BusinessType.UPDATE)
-    @PutMapping
-    public AjaxResult edit(@RequestBody WuyeHouseBindCheck wuyeHouseBindCheck)
-    {
-        return toAjax(wuyeHouseBindCheckService.updateWuyeHouseBindCheck(wuyeHouseBindCheck));
     }
 }

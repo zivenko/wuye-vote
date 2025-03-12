@@ -40,9 +40,9 @@
               <view class="card-info">截止日期：{{item.endTime}}  参与人数：{{item.voteCount || 0}}</view>
               <view class="card-footer">
                 <view class="card-status {{item.status === 1 ? 'ongoing' : item.status === 0 ? 'not-started' : 'ended'}}">
-                  {{item.status === 1 ? '进行中' : item.status === 0 ? '未开始' : '已结束'}}
+                  {{item.status === 1 ? '进行中' : '已结束'}}
                 </view>
-                <view class="card-action" bindtap="toVoting" data-id="{{item.templateId}}">参与投票</view>
+                <view class="card-action" bindtap="toVoting" data-id="{{item.templateId}}">{{item.status === 1 ? '参与投票' : '查看结果'}}</view>
               </view>
             </view>
         </scroll-view>
