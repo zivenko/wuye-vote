@@ -100,4 +100,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         set house_ids = #{houseIds}
         where applet_id = #{appletId}
     </update>
+
+    <select id="selectUserByNameAndMobile" resultMap="WuyeAppletUsersResult">
+        <include refid="selectWuyeAppletUsersVo"/>
+        where name = #{name} and mobile = #{mobile}
+    </select>
 </mapper>

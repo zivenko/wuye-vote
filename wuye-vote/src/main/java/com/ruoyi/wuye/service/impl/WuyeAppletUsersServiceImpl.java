@@ -161,4 +161,17 @@ public class WuyeAppletUsersServiceImpl implements IWuyeAppletUsersService
 
         return rows > 0;
     }
+
+    /**
+     * 根据姓名和手机号查找用户
+     * 
+     * @param name 用户姓名
+     * @param mobile 手机号
+     * @return 小程序用户
+     */
+    @Override
+    public WuyeAppletUsers selectUserByNameAndMobile(String name, String mobile)
+    {
+        return wuyeAppletUsersMapper.selectUserByNameAndMobile(name, mobile);
+    }
 }

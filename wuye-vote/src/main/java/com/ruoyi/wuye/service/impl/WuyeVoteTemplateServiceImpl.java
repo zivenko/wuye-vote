@@ -111,14 +111,18 @@ public class WuyeVoteTemplateServiceImpl implements IWuyeVoteTemplateService
     @Override
     public List<WuyeVoteTemplate> selectUserVoteTemplateList(Long appletId, String keyword, Integer status)
     {
-        // 获取用户可参与的投票模板列表
-        List<WuyeVoteTemplate> list = wuyeVoteTemplateMapper.selectUserVoteTemplateList(appletId, keyword, status);
-        
-        // 更新每个模板的状态
-        for (WuyeVoteTemplate template : list) {
-            template.setStatus(template.calculateStatus());
-        }
-        
-        return list;
+        return wuyeVoteTemplateMapper.selectUserVoteTemplateList(appletId, keyword, status);
+    }
+
+    /**
+     * 根据房屋IDs获取可投票的模板列表
+     * 
+     * @param houseIds 房屋ID列表，逗号分隔
+     * @return 投票模板集合
+     */
+    @Override
+    public List<WuyeVoteTemplate> selectTemplatesByHouseIds(String houseIds)
+    {
+        return wuyeVoteTemplateMapper.selectTemplatesByHouseIds(houseIds);
     }
 }

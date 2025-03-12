@@ -152,4 +152,16 @@
         GROUP BY t.template_id
         ORDER BY t.create_time DESC
     </select>
+
+    <!-- 根据房屋IDs获取可投票的模板列表 -->
+    <select id="selectTemplatesByHouseIds" resultMap="WuyeVoteTemplateResult">
+        SELECT DISTINCT t.*, COUNT(DISTINCT r.applet_id) as vote_count
+        FROM wuye_vote_template t
+        INNER JOIN wuye_houses h ON FIND_IN_SET(h.house_id, #{houseIds})
+        LEFT JOIN wuye_vote_record r ON t.template_id = r.template_id AND r.status = 1
+        WHERE FIND_IN_SET(h.district_id, t.community_ids)
+        AND t.start_time &lt;= CURDATE() AND t.end_time >= CURDATE()
+        GROUP BY t.template_id
+        ORDER BY t.create_time DESC
+    </select>
 </mapper>

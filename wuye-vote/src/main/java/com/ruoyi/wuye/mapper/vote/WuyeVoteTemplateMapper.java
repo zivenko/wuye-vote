@@ -72,4 +72,12 @@ public interface WuyeVoteTemplateMapper
     public List<WuyeVoteTemplate> selectUserVoteTemplateList(@Param("appletId") Long appletId, 
                                                             @Param("keyword") String keyword,
                                                             @Param("status") Integer status);
+
+    /**
+     * 根据房屋IDs获取可投票的模板列表
+     * 
+     * @param houseIds 房屋ID列表，逗号分隔
+     * @return 投票模板集合
+     */
+    public List<WuyeVoteTemplate> selectTemplatesByHouseIds(@Param("houseIds") String houseIds);
 }

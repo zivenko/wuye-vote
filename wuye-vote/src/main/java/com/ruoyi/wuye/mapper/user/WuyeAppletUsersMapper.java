@@ -96,4 +96,13 @@ public interface WuyeAppletUsersMapper
      * @return 结果
      */
     public int updateHouseIds(@Param("appletId") Long appletId, @Param("houseIds") String houseIds);
+
+    /**
+     * 根据姓名和手机号查找用户
+     * 
+     * @param name 用户姓名
+     * @param mobile 手机号
+     * @return 小程序用户
+     */
+    public WuyeAppletUsers selectUserByNameAndMobile(@Param("name") String name, @Param("mobile") String mobile);
 }

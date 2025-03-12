@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
@@ -27,6 +28,8 @@ import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.wuye.domain.vote.WuyeVoteTemplate;
 import com.ruoyi.wuye.service.vote.IWuyeVoteTemplateService;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.wuye.service.user.IWuyeAppletUsersService;
+import com.ruoyi.common.core.domain.entity.wuye.user.WuyeAppletUsers;
 
 /**
  * 投票记录Controller
@@ -43,6 +46,9 @@ public class WuyeVoteRecordController extends BaseController
 
     @Autowired
     private IWuyeVoteTemplateService wuyeVoteTemplateService;
+
+    @Autowired
+    private IWuyeAppletUsersService wuyeAppletUsersService;
 
     /**
      * 查询投票记录列表
@@ -87,6 +93,28 @@ public class WuyeVoteRecordController extends BaseController
     @PostMapping
     public AjaxResult add(@RequestBody WuyeVoteRecord wuyeVoteRecord)
     {
+        // 检查是否在投票时间范围内
+        WuyeVoteTemplate template = wuyeVoteTemplateService.selectWuyeVoteTemplateByTemplateId(wuyeVoteRecord.getTemplateId());
+        if (template == null) {
+            return error("投票模板不存在");
+        }
+        if (!template.isInVoteTimeRange()) {
+            return error("不在投票时间范围内");
+        }
+
+        // 检查是否已经投过票
+        WuyeVoteRecord query = new WuyeVoteRecord();
+        query.setTemplateId(wuyeVoteRecord.getTemplateId());
+        query.setAppletId(wuyeVoteRecord.getAppletId());
+        query.setStatus(1L); // 有效票
+        List<WuyeVoteRecord> existingVotes = wuyeVoteRecordService.selectWuyeVoteRecordList(query);
+        if (!existingVotes.isEmpty()) {
+            return error("该用户已经参与过此投票");
+        }
+
+        // 设置投票时间
+        wuyeVoteRecord.setVoteTime(DateUtils.getNowDate());
+        
         return toAjax(wuyeVoteRecordService.insertWuyeVoteRecord(wuyeVoteRecord));
     }
 
@@ -173,5 +201,25 @@ public class WuyeVoteRecordController extends BaseController
         data.put("userChoice", records.isEmpty() ? null : records.get(0).getChoices());
         
         return success(data);
+    }
+
+    /**
+     * 根据姓名和手机号查找用户
+     */
+    @GetMapping("/searchUser")
+    public AjaxResult searchUser(@RequestParam String name, @RequestParam String mobile)
+    {
+        WuyeAppletUsers user = wuyeAppletUsersService.selectUserByNameAndMobile(name, mobile);
+        return success(user);
+    }
+
+    /**
+     * 根据房屋IDs获取可投票的模板列表
+     */
+    @GetMapping("/templates/{houseIds}")
+    public AjaxResult getTemplatesByHouseIds(@PathVariable("houseIds") String houseIds)
+    {
+        List<WuyeVoteTemplate> templates = wuyeVoteTemplateService.selectTemplatesByHouseIds(houseIds);
+        return success(templates);
     }
 }

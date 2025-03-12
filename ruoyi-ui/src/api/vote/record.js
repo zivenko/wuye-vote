@@ -42,3 +42,20 @@ export function delRecord(voteId) {
     method: 'delete'
   })
 }
+
+// 根据姓名和手机号查找用户
+export function searchAppletUser(data) {
+  return request({
+    url: '/system/record/searchUser',
+    method: 'get',
+    params: data
+  })
+}
+
+// 根据房屋IDs获取可投票的模板列表
+export function listTemplateByHouseIds(houseIds) {
+  return request({
+    url: '/system/record/templates/' + houseIds,
+    method: 'get'
+  })
+}
