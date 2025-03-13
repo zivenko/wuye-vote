@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "首页",
+  "navigationBarTitleText": "业主大会投票",
   "usingComponents": {
     "van-icon": "@vant/weapp/icon/index",
     "van-notice-bar": "@vant/weapp/notice-bar/index",

@@ -1,9 +1,9 @@
 <view class="app">
     <!-- 头部 -->
-    <view class="header">
+    <!-- <view class="header">
         <text class="title">业主大会投票</text>
         <van-icon size="30px" name="question-o" />
-    </view>
+    </view> -->
     <!-- 搜索 -->
     <view class="search-bar">
         <van-search 
@@ -42,7 +42,7 @@
                 <view class="card-status {{item.status === 1 ? 'ongoing' : item.status === 0 ? 'not-started' : 'ended'}}">
                   {{item.status === 1 ? '进行中' : '已结束'}}
                 </view>
-                <view class="card-action" bindtap="toVoting" data-id="{{item.templateId}}">{{item.status === 1 ? '参与投票' : '已结束'}}</view>
+                <view class="card-action" bindtap="toVoting" data-id="{{item.templateId}}">{{item.status === 1 ? '参与投票' : '查看结果'}}</view>
               </view>
             </view>
         </scroll-view>
