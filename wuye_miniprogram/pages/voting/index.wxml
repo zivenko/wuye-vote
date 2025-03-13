@@ -15,7 +15,7 @@
     <text class="description-title">投票说明：</text>
     <view class="description-list">
       <text>{{template.description}}</text>
-      <text wx:if="{{template.rule}}" class="rule">投票规则：{{template.rule}}</text>
+      <text wx:if="{{template.voteTimes}}" class="rule">投票规则：可选{{template.voteTimes}}项</text>
     </view>
   </view>
 
@@ -24,18 +24,17 @@
       <view class="options-container">
         <text class="options-title" wx:if="{{!hasVoted}}">请选择您支持的方案：</text>
         <text class="options-title" wx:else>您已投票，您的选择是：</text>
-        <radio-group class="radio-group" bindchange="handleOptionChange" wx:if="{{!hasVoted}}">
-          <label class="radio-item" wx:for="{{options}}" wx:key="value">
-            <radio value="{{item.value}}" color="#007AFF" checked="{{item.value === selectedOption}}"/>
+        <view class="vote-info" wx:if="{{!hasVoted}}">可选 {{template.voteTimes || 1}} 项，剩余可选 {{remainingChoices}} 项</view>
+        <checkbox-group class="checkbox-group" bindchange="handleOptionChange" wx:if="{{!hasVoted}}">
+          <label class="checkbox-item" wx:for="{{options}}" wx:key="value">
+            <checkbox value="{{item.label}}" color="#007AFF" checked="{{item.isSelected}}" disabled="{{selectedOption.length >= template.voteTimes && !item.isSelected}}"/>
             <text>方案{{item.label}}: {{item.content}}</text>
           </label>
-        </radio-group>
+        </checkbox-group>
         <view class="option-list" wx:else>
-          <view class="option-item {{item.value === selectedOption ? 'selected' : ''}}" 
-                wx:for="{{options}}" 
-                wx:key="value">
+          <view wx:for="{{options}}" wx:key="value" class="option-item {{item.isSelected ? 'selected' : ''}}">
             <text>方案{{item.label}}: {{item.content}}</text>
-            <text class="selected-mark" wx:if="{{item.value === selectedOption}}">(已选)</text>
+            <text class="selected-mark" wx:if="{{item.isSelected}}">(已选)</text>
           </view>
         </view>
       </view>

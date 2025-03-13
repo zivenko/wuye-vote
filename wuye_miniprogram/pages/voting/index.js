@@ -5,9 +5,15 @@ Page({
     templateId: null,
     template: null,
     options: [],
-    selectedOption: '',
+    selectedOption: [],
     isLoggedIn: false,
-    hasVoted: false
+    hasVoted: false,
+    remainingChoices: 0
+  },
+
+  // 添加判断选项是否选中的方法
+  isOptionSelected(optionLabel) {
+    return this.data.selectedOption && this.data.selectedOption.indexOf(optionLabel) !== -1;
   },
 
   onLoad(options) {
@@ -64,26 +70,43 @@ Page({
         const { template, userChoice } = res.data;
         
         // 解析选项数据
-        let choicesObj = {};
         try {
-          choicesObj = JSON.parse(template.choices || '{}');
-          // 将对象格式转换为数组格式
-          const options = Object.entries(choicesObj).map(([key, value]) => ({
-            label: key,
-            value: key,
-            content: value.content
-          }));
+          const choicesObj = JSON.parse(template.choices || '{}');
+          // 将对象格式转换为数组格式，并按字母顺序排序
+          const options = Object.entries(choicesObj)
+            .map(([key, value]) => ({
+              label: key,
+              value: key,
+              content: value.content,
+              isSelected: false
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
+
+          // 处理用户已选择的选项，确保是数组格式
+          let selectedChoices = [];
+          if (userChoice) {
+            // 如果是逗号分隔的字符串，分割成数组
+            selectedChoices = userChoice.includes(',') ? userChoice.split(',') : [userChoice];
+            // 标记选中的选项
+            options.forEach(option => {
+              option.isSelected = selectedChoices.indexOf(option.label) !== -1;
+            });
+          }
 
           this.setData({
             template: {
               ...template,
+              voteTimes: parseInt(template.voteTimes) || 1,
               // 格式化日期显示
               endTime: template.endTime ? template.endTime.split(' ')[0] : '未设置'
             },
             options,
             hasVoted: !!userChoice,
-            selectedOption: userChoice || ''
+            selectedOption: selectedChoices,
+            remainingChoices: (parseInt(template.voteTimes) || 1) - selectedChoices.length
           });
+
+          console.log('Selected options:', selectedChoices); // 调试日志
         } catch (e) {
           console.error('解析选项数据失败:', e);
           wx.showToast({
@@ -105,15 +128,41 @@ Page({
   },
 
   handleOptionChange(e) {
+    const selectedValues = e.detail.value;
+    const maxChoices = this.data.template.voteTimes || 1;
+    
+    if (selectedValues.length > maxChoices) {
+      wx.showToast({
+        title: `最多选择${maxChoices}项`,
+        icon: 'none'
+      });
+      return;
+    }
+
+    const options = this.data.options.map(option => ({
+      ...option,
+      isSelected: selectedValues.indexOf(option.label) !== -1
+    }));
+
     this.setData({
-      selectedOption: e.detail.value
+      options,
+      selectedOption: selectedValues,
+      remainingChoices: maxChoices - selectedValues.length
     });
   },
 
   async handleSubmit() {
-    if (!this.data.selectedOption) {
+    if (!this.data.selectedOption.length) {
       wx.showToast({
-        title: '请选择一个选项',
+        title: '请至少选择一个选项',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (this.data.selectedOption.length > (this.data.template.voteTimes || 1)) {
+      wx.showToast({
+        title: `最多选择${this.data.template.voteTimes || 1}项`,
         icon: 'none'
       });
       return;
@@ -128,7 +177,7 @@ Page({
       const res = await voteApi.submitVote({
         templateId: this.data.templateId,
         appletId: app.globalData.userInfo.appletId,
-        choices: this.data.selectedOption
+        choices: this.data.selectedOption.join(',')
       });
 
       wx.hideLoading();

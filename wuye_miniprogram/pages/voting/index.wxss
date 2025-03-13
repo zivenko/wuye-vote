@@ -28,9 +28,9 @@ page {
 }
 
 .vote-info {
-  padding-left: 20rpx;
   font-size: 28rpx;
   color: #666;
+  margin-bottom: 20rpx;
 }
 
 .vote-info text {
@@ -151,4 +151,22 @@ page {
   color: #007AFF;
   margin: 30rpx 0;
   font-size: 28rpx;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  background: #f8f8f8;
+  border-radius: 8rpx;
+}
+
+.checkbox-item checkbox {
+  margin-right: 20rpx;
 }

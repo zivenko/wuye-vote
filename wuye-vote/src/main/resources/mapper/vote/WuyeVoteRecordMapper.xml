@@ -37,6 +37,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="voteTime != null "> and r.vote_time = #{voteTime}</if>
             <if test="status != null "> and r.status = #{status}</if>
             <if test="byAdmin != null "> and r.by_admin = #{byAdmin}</if>
+            <if test="templateId != null "> and r.template_id = #{templateId}</if>
+            <if test="appletId != null "> and r.applet_id = #{appletId}</if>
         </where>
         order by r.create_time desc
     </select>
