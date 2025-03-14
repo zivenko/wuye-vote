@@ -19,10 +19,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime"    column="create_time"    />
         <result property="checkTime"    column="check_time"    />
         <result property="userId"    column="user_id"    />
+        <result property="mobile"   column="mobile" />
     </resultMap>
 
     <sql id="selectWuyeHouseBindCheckVo">
-        select c.check_id, c.applet_id, a.name, a.id_number, c.house_id, 
+        select c.check_id, c.applet_id, a.name, a.id_number, a.mobile, c.house_id,
         b3.name as district_name, b1.name as building_name, b2.name as unit_name, h.room_number,
         c.certificate, c.check_status, c.check_error_msg, c.create_time, c.check_time, c.user_id 
         from wuye_house_bind_check c

@@ -9,6 +9,14 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="手机号" prop="mobile">
+        <el-input
+          v-model="queryParams.mobile"
+          placeholder="请输入手机号"
+          clearable
+          @keyup.enter.native="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="小区" prop="districtName">
         <el-input
           v-model="queryParams.districtName"
@@ -106,6 +114,7 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="检查表ID" align="center" prop="checkId" />
       <el-table-column label="用户姓名" align="center" prop="appletUserName" />
+      <el-table-column label="手机号" align="center" prop="mobile" />
       <el-table-column label="身份证号" align="center" prop="appletUserIdNumber" />
       <el-table-column label="小区" align="center" prop="districtName" />
       <el-table-column label="楼栋" align="center" prop="buildingName" />
@@ -175,6 +184,9 @@
         <el-form-item label="用户姓名" prop="appletUserName">
           <el-input v-model="form.appletUserName" placeholder="请输入用户姓名" />
         </el-form-item>
+        <el-form-item label="手机号" prop="mobile">
+          <el-input v-model="form.mobile" placeholder="请输入手机号" />
+        </el-form-item>
         <el-form-item label="小区" prop="districtName">
           <el-input v-model="form.districtName" placeholder="请输入小区" />
         </el-form-item>
@@ -229,6 +241,7 @@
 
 <script>
 import { listCheck, getCheck, delCheck, addCheck, updateCheck } from '@/api/buildings/check'
+import { getHouses } from '@/api/buildings/houses'
 import { getToken } from '@/utils/auth'
 
 export default {
@@ -260,6 +273,7 @@ export default {
         pageNum: 1,
         pageSize: 10,
         appletUserName: null,
+        mobile: null,
         districtName: null,
         buildingName: null,
         unitName: null,
@@ -268,7 +282,21 @@ export default {
         checkTime: null
       },
       // 表单参数
-      form: {},
+      form: {
+        checkId: null,
+        appletUserName: null,
+        mobile: null,
+        districtName: null,
+        buildingName: null,
+        unitName: null,
+        roomNumber: null,
+        certificate: null,
+        checkStatus: null,
+        checkErrorMsg: null,
+        createTime: null,
+        checkTime: null,
+        userId: null
+      },
       // 审核表单参数
       auditForm: {
         checkId: null,
@@ -279,6 +307,9 @@ export default {
       rules: {
         appletUserName: [
           { required: true, message: '用户姓名不能为空', trigger: 'blur' }
+        ],
+        mobile: [
+          { required: true, message: '手机号不能为空', trigger: 'blur' }
         ],
         districtName: [
           { required: true, message: '小区不能为空', trigger: 'blur' }
@@ -325,8 +356,47 @@ export default {
     getList() {
       this.loading = true
       listCheck(this.queryParams).then(response => {
-        this.checkList = response.rows
-        this.total = response.total
+        console.log('Initial response:', response)
+        // 获取房屋信息并更新列表数据
+        const promises = response.rows.map(row => {
+          console.log('Processing row with houseId:', row.houseId)
+          return getHouses(row.houseId).then(houseRes => {
+            console.log('House response for houseId', row.houseId, ':', houseRes)
+            if (houseRes.data) {
+              console.log('House data found:', houseRes.data)
+              row.districtName = houseRes.data.districtName || '未知小区'
+              row.buildingName = houseRes.data.buildingName || '未知楼栋'
+              row.unitName = houseRes.data.unitName || '未知单元'
+              row.roomNumber = houseRes.data.roomNumber || '未知房号'
+            } else {
+              console.log('No house data found for houseId:', row.houseId)
+              row.districtName = '未知小区'
+              row.buildingName = '未知楼栋'
+              row.unitName = '未知单元'
+              row.roomNumber = '未知房号'
+            }
+            return row
+          }).catch(error => {
+            console.error('Error fetching house data for houseId:', row.houseId, error)
+            row.districtName = '获取失败'
+            row.buildingName = '获取失败'
+            row.unitName = '获取失败'
+            row.roomNumber = '获取失败'
+            return row
+          })
+        })
+
+        Promise.all(promises).then(updatedRows => {
+          console.log('Final updated rows:', updatedRows)
+          this.checkList = updatedRows
+          this.total = response.total
+          this.loading = false
+        }).catch(error => {
+          console.error('Error in Promise.all:', error)
+          this.loading = false
+        })
+      }).catch(error => {
+        console.error('API Error:', error)
         this.loading = false
       })
     },
@@ -340,6 +410,7 @@ export default {
       this.form = {
         checkId: null,
         appletUserName: null,
+        mobile: null,
         districtName: null,
         buildingName: null,
         unitName: null,

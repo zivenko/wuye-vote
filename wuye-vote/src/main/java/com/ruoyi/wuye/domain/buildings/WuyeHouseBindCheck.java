@@ -73,7 +73,19 @@ public class WuyeHouseBindCheck extends BaseEntity
     @Excel(name = "审核员ID")
     private Long userId;
 
-    public void setCheckId(Long checkId) 
+    /** 手机号 */
+    @Excel(name = "手机号")
+    private String mobile;
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
+    public void setCheckId(Long checkId)
     {
         this.checkId = checkId;
     }
