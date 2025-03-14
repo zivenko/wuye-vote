@@ -1,8 +1,10 @@
 package com.ruoyi.web.controller.buildings;
 
 import java.util.List;
+import java.util.Objects;
 import javax.servlet.http.HttpServletResponse;
 
+import cn.hutool.core.util.StrUtil;
 import com.ruoyi.common.config.RuoYiConfig;
 import com.ruoyi.common.core.domain.entity.wuye.buildings.WuyeHouses;
 import com.ruoyi.common.core.domain.entity.wuye.user.WuyeAppletUsers;
@@ -74,7 +76,6 @@ public class WuyeHouseBindCheckController extends BaseController
     /**
      * 获取房屋绑定审核详细信息
      */
-    @PreAuthorize("@ss.hasPermi('system:check:query')")
     @GetMapping(value = "/{checkId}")
     public AjaxResult getInfo(@PathVariable("checkId") Long checkId)
     {
@@ -87,23 +88,29 @@ public class WuyeHouseBindCheckController extends BaseController
     @Log(title = "房屋绑定审核", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestParam("file") MultipartFile file, 
-                         @RequestParam("districtName") String districtName,
-                         @RequestParam("buildingName") String buildingName,
-                         @RequestParam("unitName") String unitName,
+                         @RequestParam(value = "districtName", required = false) String districtName,
+                         @RequestParam(value = "buildingName", required = false) String buildingName,
+                         @RequestParam(value = "unitName", required = false) String unitName,
+                         @RequestParam(value = "houseId", required = false) Long houseId,
                          @RequestParam("roomNumber") String roomNumber) throws Exception
     {
+        // 创建审核记录
+        WuyeHouseBindCheck wuyeHouseBindCheck = new WuyeHouseBindCheck();
+
         // 上传文件
         String filePath = FileUploadUtils.upload(RuoYiConfig.getUploadPath(), file);
 
         // 根据小区、楼栋、单元、房号查找房屋ID
-        WuyeHouses house = wuyeHousesService.getHouseByLocation(districtName, buildingName, unitName, roomNumber);
-        if (house == null) {
-            return error("未找到对应的房屋信息");
+        if(Objects.isNull(houseId)) {
+            WuyeHouses house = wuyeHousesService.getHouseByLocation(districtName, buildingName, unitName, roomNumber);
+            if (house == null) {
+                return error("未找到对应的房屋信息");
+            }
+            wuyeHouseBindCheck.setHouseId(house.getHouseId());
+        } else {
+            wuyeHouseBindCheck.setHouseId(houseId);
         }
 
-        // 创建审核记录
-        WuyeHouseBindCheck wuyeHouseBindCheck = new WuyeHouseBindCheck();
-        wuyeHouseBindCheck.setHouseId(house.getHouseId());
         wuyeHouseBindCheck.setCertificate(filePath);
         wuyeHouseBindCheck.setCheckStatus("uncheck"); // 设置初始状态为未审核
 
@@ -114,18 +121,16 @@ public class WuyeHouseBindCheckController extends BaseController
         return toAjax(wuyeHouseBindCheckService.insertWuyeHouseBindCheck(wuyeHouseBindCheck));
     }
 
+
+
     /**
-     * 修改房屋绑定审核
+     * 修改房屋绑定审核(图片版本)
      */
-    @PreAuthorize("@ss.hasPermi('system:check:edit')")
     @Log(title = "房屋绑定审核", businessType = BusinessType.UPDATE)
-    @PostMapping("/update")
+    @PostMapping("/update/img")
     public AjaxResult update(@RequestParam(value = "file", required = false) MultipartFile file,
-                            @RequestParam("checkId") Long checkId,
-                            @RequestParam("districtName") String districtName,
-                            @RequestParam("buildingName") String buildingName,
-                            @RequestParam("unitName") String unitName,
-                            @RequestParam("roomNumber") String roomNumber) throws Exception
+                             @RequestParam(value = "checkId", required = false) Long checkId,
+                             @RequestParam(value = "houseId", required = false) Long houseId) throws Exception
     {
         // 获取现有的审核记录
         WuyeHouseBindCheck existingCheck = wuyeHouseBindCheckService.selectWuyeHouseBindCheckByCheckId(checkId);
@@ -134,14 +139,8 @@ public class WuyeHouseBindCheckController extends BaseController
             return error("未找到对应的审核记录");
         }
 
-        // 根据小区、楼栋、单元、房号查找房屋ID
-        WuyeHouses house = wuyeHousesService.getHouseByLocation(districtName, buildingName, unitName, roomNumber);
-        if (house == null) {
-            return error("未找到对应的房屋信息");
-        }
-
         // 更新房屋ID
-        existingCheck.setHouseId(house.getHouseId());
+        existingCheck.setHouseId(houseId);
 
         // 如果上传了新文件，处理文件上传
         if (file != null && !file.isEmpty())
@@ -149,6 +148,33 @@ public class WuyeHouseBindCheckController extends BaseController
             String filePath = FileUploadUtils.upload(RuoYiConfig.getUploadPath(), file);
             existingCheck.setCertificate(filePath);
         }
+
+        // 重置审核状态为未审核
+        existingCheck.setCheckStatus("uncheck");
+        existingCheck.setCheckErrorMsg(null);
+        existingCheck.setCheckTime(null);
+
+        return toAjax(wuyeHouseBindCheckService.updateWuyeHouseBindCheck(existingCheck));
+    }
+
+    /**
+     * 修改房屋绑定审核
+     */
+    @Log(title = "房屋绑定审核", businessType = BusinessType.UPDATE)
+    @PostMapping("/update")
+    public AjaxResult update(@RequestBody WuyeHouseBindCheck wuyeHouseBindCheck) throws Exception
+    {
+        // 获取现有的审核记录
+        WuyeHouseBindCheck existingCheck = wuyeHouseBindCheckService.selectWuyeHouseBindCheckByCheckId(wuyeHouseBindCheck.getCheckId());
+        if (existingCheck == null)
+        {
+            return error("未找到对应的审核记录");
+        }
+
+        // 更新房屋ID
+        existingCheck.setHouseId(wuyeHouseBindCheck.getHouseId());
+
+
 
         // 重置审核状态为未审核
         existingCheck.setCheckStatus("uncheck");

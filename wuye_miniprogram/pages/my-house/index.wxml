@@ -28,7 +28,7 @@
                 </van-tag>
                 <text class="error-msg" wx:if="{{item.checkStatus === 'fail'}}">{{item.checkErrorMsg}}</text>
               </view>
-              <view class="status-right" wx:if="{{item.checkStatus === 'uncheck'}}">
+              <view class="status-right" wx:if="{{item.checkStatus === 'fail'}}">
                 <van-button 
                   plain
                   type="primary" 

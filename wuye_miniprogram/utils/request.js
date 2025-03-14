@@ -37,12 +37,25 @@ const request = (method, url, data = {}) => {
       data,
       header,
       success: (res) => {
-        // 如果接口返回未登录状态码（如 401），可以跳转到登录页
-        if (res.statusCode === 401) {
+        // 如果接口返回未登录状态码（如 401），更新全局登录状态
+        if (res.data.code === 401) {
           clearToken();
-          wx.navigateTo({
-            url: '/pages/login/index'
+          const app = getApp();
+          app.globalData.isLoggedIn = false;
+          app.globalData.userInfo = null;
+          console.log('未登录或登录已过期');
+          // 显示登录过期提示
+          wx.showToast({
+            title: '登录已过期，请重新登录',
+            icon: 'none',
+            duration: 2000
           });
+          // 跳转到个人中心页面
+          setTimeout(() => {
+            wx.switchTab({
+              url: '/pages/my-center/index'
+            });
+          }, 1000);
           reject(new Error('未登录或登录已过期'));
           return;
         }

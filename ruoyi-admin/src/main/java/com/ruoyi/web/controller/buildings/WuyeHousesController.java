@@ -105,6 +105,7 @@ public class WuyeHousesController extends BaseController
                     house.setCertificate(check.getCertificate());
                     house.setCheckStatus(check.getCheckStatus());
                     house.setCheckErrorMsg(check.getCheckErrorMsg());
+                    house.setCheckId(check.getCheckId());
                     houses.add(house);
                 }
             }

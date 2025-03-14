@@ -38,6 +38,14 @@ Page({
         checkId: options.checkId || ''
       });
 
+      if(options.certificate) {
+          const {fileList, baseURL} = this.data
+          const url = `${baseURL}/system/check/certificate?imagePath=${options.certificate}`
+          fileList.push({url})
+          this.setData({fileList})
+      }
+
+
       // 如果是编辑模式且有房屋ID，先获取房屋详情
       if (options.isEdit === 'true' && options.houseId) {
         this.loadHouseDetail(options.houseId);
@@ -333,6 +341,8 @@ Page({
   // 房间选择器确认
   onRoomPickerConfirm(event) {
     const { value, text } = event.detail.value;
+
+    console.log(text)
     this.setData({
       houseId: value,
       roomNumber: text,
@@ -373,10 +383,12 @@ Page({
   // 提交表单
   async submitForm() {
     const { 
+      baseURL,
       fileList,
       houseId,
       isEdit,
       checkId,
+      roomNumber,
       certificate
     } = this.data;
     
@@ -401,21 +413,44 @@ Page({
         }
 
         // 判断是否更换了图片
-        const isNewFile = !fileList[0].url.startsWith('http');
+        const isNewFile = !fileList[0].url.startsWith(baseURL);
+        
         
         if (isNewFile) {
+
+            console.log(fileList[0].url)
           // 如果上传了新图片，使用新图片路径
-          const result = await userApi.updateHouseCheck(checkId, houseId, fileList[0].url);
-          if (result.code === 200) {
-            wx.showToast({ title: '修改成功', icon: 'success' });
-            setTimeout(() => {
-              wx.navigateBack();
-            }, 1500);
-          } else {
-            wx.showToast({ title: result.msg || '修改失败', icon: 'none' });
-          }
+          wx.uploadFile({
+            url: baseURL + '/system/check/update/img',
+            filePath: fileList[0].url,
+            name: 'file',
+            formData: {
+              houseId,
+              checkId
+            },
+            header: {
+              'Authorization': wx.getStorageSync('token')
+            },
+            success: (res) => {
+              const result = JSON.parse(res.data);
+              if (result.code === 200) {
+                wx.showToast({ title: '提交成功', icon: 'success' });
+                setTimeout(() => {
+                  wx.navigateBack();
+                }, 1500);
+              } else {
+                wx.showToast({ title: result.msg || '提交失败', icon: 'none' });
+              }
+            },
+            fail: () => {
+              wx.showToast({ title: '提交失败', icon: 'none' });
+            }
+          });
+
+
         } else {
           // 如果没有更换图片，使用普通的POST请求
+          console.log("没有换图片");
           const result = await userApi.updateHouseCheckWithoutFile(checkId, houseId);
           if (result.code === 200) {
             wx.showToast({ title: '修改成功', icon: 'success' });
@@ -427,13 +462,16 @@ Page({
           }
         }
       } else {
+
+        console.log("新增：", houseId)
         // 新增模式
         wx.uploadFile({
           url: getApp().globalData.baseUrl + '/system/check',
           filePath: fileList[0].url,
           name: 'file',
           formData: {
-            houseId: String(houseId)
+            houseId: String(houseId),
+            roomNumber
           },
           header: {
             'Authorization': wx.getStorageSync('token')

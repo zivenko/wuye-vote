@@ -80,6 +80,7 @@ Page({
   // 修改房屋信息
   editHouse(event) {
     const { house } = event.currentTarget.dataset;
+    console.log('editHouse', house)
     // 构建完整的URL参数
     const params = {
       houseId: house.houseId,
@@ -94,7 +95,8 @@ Page({
       unitName: house.unitName,
       type: house.type,
       area: house.area,
-      isEdit: true // 标记是编辑模式
+      isEdit: true, // 标记是编辑模式
+      checkId: house.checkId
     };
 
     // 将对象转换为URL查询字符串

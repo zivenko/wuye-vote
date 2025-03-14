@@ -45,7 +45,8 @@
     "van-cell-group": "@vant/weapp/cell-group/index",
     "van-uploader": "@vant/weapp/uploader/index",
     "van-picker": "@vant/weapp/picker/index",
-    "van-popup": "@vant/weapp/popup/index"
+    "van-popup": "@vant/weapp/popup/index",
+    "van-empty": "@vant/weapp/empty/index"
   },
   "style": "v2"
 }

@@ -82,6 +82,17 @@ public class WuyeHouses extends BaseEntity
     /** 房产证明 */
     private String certificate;
 
+    /** 检查id */
+    private Long checkId;
+
+    public Long getCheckId() {
+        return checkId;
+    }
+
+    public void setCheckId(Long checkId) {
+        this.checkId = checkId;
+    }
+
     public String getCertificate() {
         return certificate;
     }

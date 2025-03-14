@@ -1,5 +1,5 @@
 .cards {
-    height: 100vh;
+    height: 76vh;
 }
 .card {
     background-color: #fff;
@@ -39,4 +39,9 @@
   
   .status {
     margin: 30rpx 0;
+  }
+
+  .no-margin {
+      margin: 0 !important;
+      width: 100% !important;
   }

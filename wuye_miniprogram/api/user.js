@@ -184,6 +184,11 @@ const updateHouseCheckWithoutFile = (checkId, houseId) => {
   });
 };
 
+// 根据id获取绑定信息
+const getHouseBindDetail = (checkId) => {
+    return http.get(`/system/check/${checkId}`)
+}
+
 module.exports = {
   wxLogin,
   getUserInfo,

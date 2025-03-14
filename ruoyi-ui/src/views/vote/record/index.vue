@@ -58,14 +58,14 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
+        <!-- <el-button
           v-hasPermi="['system:record:add']"
           type="primary"
           plain
           icon="el-icon-plus"
           size="mini"
           @click="handleAdd"
-        >跳票</el-button>
+        >跳票</el-button> -->
       </el-col>
       <el-col :span="1.5">
         <el-button

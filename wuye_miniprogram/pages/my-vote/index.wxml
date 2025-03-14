@@ -36,12 +36,17 @@
                 type="{{item.status === 2 ? 'default' : 'info'}}" 
                 color="{{item.status === 2 ? '#999999' : ''}}"
                 size="large" 
+                custom-class="no-margin"
+                block
                 round 
                 bind:click="toVoting" 
                 data-id="{{item.templateId}}">
                 {{item.status === 2 ? '查看结果' : '参与投票'}}
              </van-button>
         </view>
+
+        <van-divider
+         contentPosition="center">到底啦</van-divider>
     </scroll-view>
   </van-tab>
   <van-tab title="进行中">
@@ -67,8 +72,13 @@
              <view class="status">
                 <van-tag color="#E6F3FF" text-color="#007AFF" size="large" round type="primary">进行中</van-tag>
              </view>
-             <van-button type="info" size="large" round bind:click="toVoting" data-id="{{item.templateId}}">参与投票</van-button>
+             <van-button 
+             custom-class="no-margin"
+             block
+             type="info" size="large" round bind:click="toVoting" data-id="{{item.templateId}}">参与投票</van-button>
         </view>
+
+        <van-divider contentPosition="center">到底啦</van-divider>
     </scroll-view>
   </van-tab>
 
@@ -95,8 +105,12 @@
              <view class="status">
                 <van-tag color="#F0F0F0" text-color="#999999" size="large" round type="primary">已结束</van-tag>
              </view>
-             <van-button color="#999999" size="large" round bind:click="toVoting" data-id="{{item.templateId}}">查看结果</van-button>
+             <van-button
+              custom-class="no-margin"
+              block
+              color="#999999" size="large" round bind:click="toVoting" data-id="{{item.templateId}}">查看结果</van-button>
         </view>
+        <van-divider contentPosition="center">到底啦</van-divider>
     </scroll-view>
   </van-tab>
 </van-tabs>

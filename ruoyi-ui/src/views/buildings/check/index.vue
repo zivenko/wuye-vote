@@ -57,7 +57,7 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <!-- <el-col :span="1.5">
         <el-button
           v-hasPermi="['system:check:add']"
           type="primary"
@@ -98,7 +98,7 @@
           size="mini"
           @click="handleExport"
         >导出</el-button>
-      </el-col>
+      </el-col> -->
       <right-toolbar :show-search.sync="showSearch" @queryTable="getList" />
     </el-row>
 
@@ -135,7 +135,7 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <el-button
+          <!-- <el-button
             v-hasPermi="['system:check:edit']"
             size="mini"
             type="text"
@@ -148,7 +148,7 @@
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
-          >删除</el-button>
+          >删除</el-button> -->
           <el-button
             v-if="scope.row.checkStatus === 'uncheck'"
             v-hasPermi="['system:check:edit']"
