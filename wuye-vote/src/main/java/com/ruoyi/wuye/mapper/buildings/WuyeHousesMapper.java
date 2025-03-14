@@ -1,6 +1,7 @@
 package com.ruoyi.wuye.mapper.buildings;
 
 import com.ruoyi.common.core.domain.entity.wuye.buildings.WuyeHouses;
+import com.ruoyi.common.core.domain.vo.HouseVoteStatusVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -73,4 +74,12 @@ public interface WuyeHousesMapper
 
 
     public WuyeHouses selectHouseByLocation(String districtName, String buildingName, String unitName, String roomNumber);
+
+    /**
+     * 查询房屋投票状态列表
+     *
+     * @param templateId 投票模板ID
+     * @return 房屋投票状态列表
+     */
+    public List<HouseVoteStatusVO> selectHouseVoteStatusList(@Param("templateId") Long templateId);
 }

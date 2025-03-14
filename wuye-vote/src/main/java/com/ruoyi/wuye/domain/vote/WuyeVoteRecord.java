@@ -57,7 +57,17 @@ public class WuyeVoteRecord extends BaseEntity
     @Excel(name = "投票模板")
     private String title;
 
-    public void setVoteId(Long voteId) 
+    private Long houseId;
+
+    public Long getHouseId() {
+        return houseId;
+    }
+
+    public void setHouseId(Long houseId) {
+        this.houseId = houseId;
+    }
+
+    public void setVoteId(Long voteId)
     {
         this.voteId = voteId;
     }

@@ -1,6 +1,7 @@
 package com.ruoyi.wuye.service.buildings;
 
 import com.ruoyi.common.core.domain.entity.wuye.buildings.WuyeHouses;
+import com.ruoyi.common.core.domain.vo.HouseVoteStatusVO;
 
 import java.util.List;
 
@@ -74,4 +75,12 @@ public interface IWuyeHousesService
      * @return 房屋信息
      */
     public WuyeHouses getHouseByLocation(String districtName, String buildingName, String unitName, String roomNumber);
+
+    /**
+     * 查询房屋投票状态列表
+     *
+     * @param templateId 投票模板ID
+     * @return 房屋投票状态列表
+     */
+    public List<HouseVoteStatusVO> getHouseVoteStatusList(Long templateId);
 }

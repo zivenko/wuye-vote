@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 
 import com.ruoyi.wuye.domain.vote.WuyeVoteRecord;
 import com.ruoyi.wuye.service.vote.IWuyeVoteRecordService;
@@ -221,5 +222,57 @@ public class WuyeVoteRecordController extends BaseController
     {
         List<WuyeVoteTemplate> templates = wuyeVoteTemplateService.selectTemplatesByHouseIds(houseIds);
         return success(templates);
+    }
+
+    /**
+     * 线下投票提交
+     */
+    @PostMapping("/offline/submit")
+    public AjaxResult submitOfflineVote(@RequestBody WuyeVoteRecord voteRecord)
+    {
+        // 检查是否在投票时间范围内
+        WuyeVoteTemplate template = wuyeVoteTemplateService.selectWuyeVoteTemplateByTemplateId(voteRecord.getTemplateId());
+        if (template == null) {
+            return error("投票模板不存在");
+        }
+        if (!template.isInVoteTimeRange()) {
+            return error("不在投票时间范围内");
+        }
+
+        // 检查选择的选项数量是否符合规则
+        String[] choices = voteRecord.getChoices().split(",");
+        if (choices.length > template.getVoteTimes()) {
+            return error("选择的选项数量超过限制");
+        }
+
+        // 根据房屋ID查询绑定的用户
+        WuyeAppletUsers query = new WuyeAppletUsers();
+        String houseId = String.valueOf(voteRecord.getHouseId());
+        List<WuyeAppletUsers> users = wuyeAppletUsersService.selectWuyeAppletUsersList(query);
+        Long appletId = null;
+        for (WuyeAppletUsers user : users) {
+            if (user.getHouseIds() != null && Arrays.asList(user.getHouseIds().split(",")).contains(houseId)) {
+                appletId = user.getAppletId();
+                break;
+            }
+        }
+
+        // 检查是否已经投过票
+        WuyeVoteRecord voteQuery = new WuyeVoteRecord();
+        voteQuery.setTemplateId(voteRecord.getTemplateId());
+        voteQuery.setAppletId(appletId);
+        voteQuery.setStatus(1L); // 有效票
+        List<WuyeVoteRecord> existingVotes = wuyeVoteRecordService.selectWuyeVoteRecordList(voteQuery);
+        if (!existingVotes.isEmpty()) {
+            return error("该房屋已经参与过此投票");
+        }
+
+        // 设置投票时间和状态
+        voteRecord.setVoteTime(DateUtils.getNowDate());
+        voteRecord.setStatus(1L); // 有效票
+        voteRecord.setByAdmin(1L); // 管理员投票
+        voteRecord.setAppletId(appletId); // 设置appletId
+
+        return toAjax(wuyeVoteRecordService.insertWuyeVoteRecord(voteRecord));
     }
 }

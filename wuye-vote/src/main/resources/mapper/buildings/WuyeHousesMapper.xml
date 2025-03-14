@@ -22,6 +22,19 @@
         <result property="unitName"    column="unit_name"    />
     </resultMap>
 
+    <resultMap type="HouseVoteStatusVO" id="HouseVoteStatusResult">
+        <result property="houseId" column="house_id" />
+        <result property="buildingNo" column="building_name" />
+        <result property="unitNo" column="unit_name" />
+        <result property="roomNo" column="room_number" />
+        <result property="ownerNames" column="owner_names" />
+        <result property="ownerMobiles" column="owner_mobiles" />
+        <result property="ownerIdNumbers" column="owner_id_numbers" />
+        <result property="hasVoted" column="has_voted" jdbcType="BOOLEAN" />
+        <result property="voteId" column="vote_id" />
+        <result property="choices" column="choices" />
+    </resultMap>
+
     <sql id="selectWuyeHousesVo">
         SELECT h.house_id, h.district_id, h.building_id, h.unit_id, h.room_number, 
                h.area, h.type, h.house_number, h.owner_names, h.owner_mobiles, 
@@ -135,4 +148,27 @@
         and h.room_number = #{roomNumber}
         limit 1
     </select>
+
+    <select id="selectHouseVoteStatusList" resultMap="HouseVoteStatusResult">
+        SELECT 
+            h.house_id,
+            b.name as building_name,
+            u.name as unit_name,
+            h.room_number,
+            h.owner_names,
+            IFNULL(h.owner_mobiles, '未设置') as owner_mobiles,
+            IFNULL(h.owner_id_numbers, '未设置') as owner_id_numbers,
+            IF(vr.vote_id IS NOT NULL, true, false) as has_voted,
+            vr.vote_id,
+            vr.choices
+        FROM wuye_vote_template vt
+        JOIN wuye_houses h ON h.district_id = CAST(SUBSTRING_INDEX(vt.community_ids, ',', 1) AS SIGNED)
+        LEFT JOIN wuye_building b ON h.building_id = b.id AND b.level = 2
+        LEFT JOIN wuye_building u ON h.unit_id = u.id AND u.level = 3
+        LEFT JOIN wuye_applet_users au ON FIND_IN_SET(h.house_id, au.house_ids)
+        LEFT JOIN wuye_vote_record vr ON au.applet_id = vr.applet_id AND vr.template_id = #{templateId}
+        WHERE vt.template_id = #{templateId}
+        ORDER BY b.name, u.name, h.room_number
+    </select>
+
 </mapper>

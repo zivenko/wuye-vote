@@ -17,6 +17,28 @@
           <el-option label="已结束" :value="2" />
         </el-select>
       </el-form-item>
+      <el-form-item label="所属小区" prop="communityId">
+        <el-select
+          v-model="queryParams.communityId"
+          filterable
+          remote
+          reserve-keyword
+          :remote-method="remoteSearch"
+          :loading="communityLoading"
+          placeholder="请输入小区名称搜索"
+          clearable
+          :default-first-option="true"
+          style="width: 200px"
+          @clear="loadCommunityOptions"
+        >
+          <el-option
+            v-for="item in communityOptions"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="时间范围" prop="timeRange">
         <el-date-picker
           v-model="dateRange"
@@ -82,9 +104,9 @@
 
     <el-table v-loading="loading" :data="templateList" @selection-change="handleSelectionChange" @row-click="handleView">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="模板ID" align="center" prop="templateId" />
       <el-table-column label="标题" align="center" prop="title" :show-overflow-tooltip="true" />
       <el-table-column label="描述" align="center" prop="description" :show-overflow-tooltip="true" />
+      <el-table-column label="所属小区" align="center" prop="communityName" :show-overflow-tooltip="true" />
       <el-table-column label="投票状态" align="center" prop="status">
         <template slot-scope="scope">
           <el-tag :type="getStatusType(scope.row.status)">{{ getStatusLabel(scope.row.status) }}</el-tag>
@@ -123,6 +145,14 @@
             icon="el-icon-document-copy"
             @click.stop="handleCopy(scope.row)"
           >复制</el-button>
+          <el-button
+            v-if="Number(scope.row.status) === 1"
+            v-hasPermi="['system:template:count']"
+            size="mini"
+            type="text"
+            icon="el-icon-s-data"
+            @click.stop="handleOfflineCount(scope.row)"
+          >线下唱票</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -167,11 +197,13 @@
             v-model="form.communityIds"
             filterable
             remote
+            reserve-keyword
             :remote-method="remoteSearch"
             :loading="communityLoading"
             placeholder="请输入小区名称搜索"
             style="width: 100%;"
             :clearable="true"
+            :default-first-option="true"
             @clear="loadCommunityOptions"
           >
             <el-option
@@ -205,12 +237,20 @@
         </template>
       </div>
     </el-dialog>
+
+    <!-- 唱票对话框 -->
+    <el-dialog
+      :title="'唱票 - ' + currentHouse.buildingNo + '栋' + currentHouse.unitNo + '单元' + currentHouse.roomNo + '室'"
+      :visible.sync="voteDialogVisible"
+      width="500px"
+      append-to-body
+    />
   </div>
 </template>
 
 <script>
 import { listTemplate, getTemplate, delTemplate, addTemplate, updateTemplate } from '@/api/vote/template'
-import { listBuilding } from '@/api/buildings/building'
+import { listBuilding, getBuilding } from '@/api/buildings/building'
 
 export default {
   name: 'Template',
@@ -240,7 +280,8 @@ export default {
         pageNum: 1,
         pageSize: 10,
         title: null,
-        status: -1
+        status: -1,
+        communityId: null
       },
       // 表单
       form: {
@@ -281,7 +322,13 @@ export default {
         { content: '' }
       ],
       // 小区选项
-      communityOptions: []
+      communityOptions: [],
+      // 搜索防抖定时器
+      searchTimer: null,
+      // 当前房屋信息
+      currentHouse: {},
+      // 投票对话框可见性
+      voteDialogVisible: false
     }
   },
   created() {
@@ -292,8 +339,32 @@ export default {
     /** 查询投票模板列表 */
     getList() {
       this.loading = true
-      listTemplate(this.addDateRange(this.queryParams, this.dateRange)).then(response => {
+      const queryParams = {
+        ...this.queryParams,
+        communityId: this.queryParams.communityId || undefined
+      }
+      listTemplate(this.addDateRange(queryParams, this.dateRange)).then(response => {
         this.templateList = response.rows
+        // 获取每个模板对应的小区名称
+        this.templateList.forEach(template => {
+          if (template.communityIds) {
+            const communityId = template.communityIds.split(',')[0]
+            getBuilding(communityId).then(res => {
+              if (res && res.data && res.data.name) {
+                this.$set(template, 'communityName', res.data.name)
+              } else {
+                this.$set(template, 'communityName', '未知小区')
+              }
+            }).catch(() => {
+              this.$set(template, 'communityName', '未知小区')
+            })
+          } else {
+            this.$set(template, 'communityName', '未知小区')
+          }
+          // 确保status是数字类型
+          template.status = Number(template.status)
+          console.log('Template status:', template.status, typeof template.status)
+        })
         this.total = response.total
         this.loading = false
       })
@@ -308,15 +379,38 @@ export default {
     },
     /** 远程搜索小区 */
     remoteSearch(query) {
+      // 清除之前的定时器
+      if (this.searchTimer) {
+        clearTimeout(this.searchTimer)
+      }
+
       if (query !== '') {
         this.communityLoading = true
-        listBuilding({
-          level: 1,
-          name: query
-        }).then(response => {
-          this.communityOptions = response.rows || []
-          this.communityLoading = false
-        })
+        // 设置300ms的防抖
+        this.searchTimer = setTimeout(() => {
+          listBuilding({
+            level: 1,
+            name: query,
+            pageSize: 20,
+            fuzzy: true
+          }).then(response => {
+            this.communityOptions = response.rows || []
+            // 如果是编辑状态，确保当前选中的小区也在选项中
+            if (this.form.communityIds && this.title === '修改投票模板') {
+              const currentCommunity = this.communityOptions.find(item => item.id === this.form.communityIds)
+              if (!currentCommunity) {
+                getBuilding(this.form.communityIds).then(res => {
+                  if (res.data) {
+                    this.communityOptions.unshift(res.data)
+                  }
+                })
+              }
+            }
+            this.communityLoading = false
+          }).catch(() => {
+            this.communityLoading = false
+          })
+        }, 300)
       } else {
         this.loadCommunityOptions()
       }
@@ -355,6 +449,7 @@ export default {
       this.dateRange = []
       this.resetForm('queryForm')
       this.queryParams.status = -1
+      this.queryParams.communityId = null
       this.queryParams.pageNum = 1
       this.handleQuery()
     },
@@ -606,6 +701,13 @@ export default {
 
         this.open = true
         this.title = '添加投票模板'
+      })
+    },
+    /** 线下唱票操作 */
+    handleOfflineCount(row) {
+      this.$router.push({
+        path: '/vote/offline-count',
+        query: { templateId: row.templateId }
       })
     },
     handleDateRangeChange(val) {

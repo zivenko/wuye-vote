@@ -3,6 +3,7 @@ package com.ruoyi.wuye.service.impl;
 import java.util.List;
 
 import com.ruoyi.common.core.domain.entity.wuye.buildings.WuyeHouses;
+import com.ruoyi.common.core.domain.vo.HouseVoteStatusVO;
 import com.ruoyi.wuye.mapper.buildings.WuyeHousesMapper;
 import com.ruoyi.wuye.service.buildings.IWuyeHousesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,5 +108,16 @@ public class WuyeHousesServiceImpl implements IWuyeHousesService
     @Override
     public WuyeHouses getHouseByLocation(String districtName, String buildingName, String unitName, String roomNumber) {
         return wuyeHousesMapper.selectHouseByLocation(districtName, buildingName, unitName, roomNumber);
+    }
+
+    /**
+     * 查询房屋投票状态列表
+     *
+     * @param templateId 投票模板ID
+     * @return 房屋投票状态列表
+     */
+    @Override
+    public List<HouseVoteStatusVO> getHouseVoteStatusList(Long templateId) {
+        return wuyeHousesMapper.selectHouseVoteStatusList(templateId);
     }
 }
