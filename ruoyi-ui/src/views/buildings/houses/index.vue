@@ -817,11 +817,15 @@ export default {
       try {
         this.upload.isUploading = true
 
-        // 显示进度条
-        const loadingInstance = this.$loading({
-          text: '正在导入数据，请稍候...',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
+        // 创建一个通知来显示进度
+        const notification = this.$notify({
+          title: '导入进度',
+          message: '正在导入数据，请稍候...',
+          duration: 0,
+          customClass: 'import-progress-notification',
+          position: 'top-right',
+          type: 'info',
+          showClose: false
         })
 
         // 初始化缓存映射
@@ -842,8 +846,8 @@ export default {
 
         for (let i = 0; i < data.length; i++) {
           try {
-            // 更新进度条文本
-            loadingInstance.text = `正在导入第 ${i + 1}/${total} 条数据...`
+            // 更新进度通知
+            notification.message = `正在导入第 ${i + 1}/${total} 条数据...`
 
             const row = data[i]
             // 确保所有字段都转换为字符串并去除空格
@@ -877,6 +881,10 @@ export default {
               }
             })
             success++
+
+            // 更新进度百分比
+            const percent = Math.round((i + 1) / total * 100)
+            notification.message = `已完成 ${percent}% (${i + 1}/${total})`
           } catch (error) {
             failed++
             const rowData = data[i]
@@ -886,26 +894,30 @@ export default {
           }
         }
 
-        // 关闭进度条
-        loadingInstance.close()
+        // 关闭进度通知
+        notification.close()
 
         // 完成导入，显示结果
         this.upload.isUploading = false
         if (failed === 0) {
-          this.$modal.msgSuccess(`导入成功，共处理 ${total} 条数据`)
+          this.$notify.success({
+            title: '导入完成',
+            message: `成功导入 ${total} 条数据`,
+            duration: 3000
+          })
         } else {
-          this.$modal.warning({
-            title: '导入结果',
-            message: h => {
-              return h('div', null, [
-                h('p', null, `导入完成，成功 ${success} 条，失败 ${failed} 条`),
-                h('div', { style: 'max-height: 300px; overflow-y: auto;' },
-                  errors.map(error => h('p', { style: 'color: #F56C6C; margin: 5px 0;' }, error))
-                )
-              ])
-            },
-            dangerouslyUseHTMLString: true,
-            customClass: 'import-result-dialog'
+          this.$notify.warning({
+            title: '导入完成',
+            message: `成功 ${success} 条，失败 ${failed} 条`,
+            duration: 0,
+            onClick: () => {
+              // 点击通知时显示详细错误信息
+              this.$alert(errors.join('\n'), '导入错误详情', {
+                type: 'warning',
+                customClass: 'import-error-dialog',
+                dangerouslyUseHTMLString: true
+              })
+            }
           })
         }
 
@@ -913,7 +925,11 @@ export default {
         this.getList() // 刷新列表
       } catch (error) {
         this.upload.isUploading = false
-        this.$modal.msgError('导入失败：' + (error.message || '未知错误'))
+        this.$notify.error({
+          title: '导入失败',
+          message: error.message || '未知错误',
+          duration: 0
+        })
         console.error('导入总体失败:', error)
       }
     },
@@ -926,150 +942,221 @@ export default {
         listBuilding({ level: 3 })
       ])
 
-      // 初始化缓存
+      // 初始化缓存，使用更精确的键值对
       districts.rows.forEach(d => cache.districts.set(d.name, d))
-      buildings.rows.forEach(b => cache.buildings.set(b.name, b))
-      units.rows.forEach(u => cache.units.set(u.name, u))
+      buildings.rows.forEach(b => cache.buildings.set(`${b.pid}-${b.name}`, b))
+      units.rows.forEach(u => cache.units.set(`${u.pid}-${u.name}`, u))
 
       return cache
     },
 
     /** 处理单行数据 */
     async processRow({ cache, rowData }) {
-      const {
-        districtName,
-        buildingName,
-        unitName,
-        roomNumber,
-        ownerNames,
-        ownerMobiles,
-        ownerIdNumbers,
-        area,
-        type,
-        houseNumber
-      } = rowData
+      try {
+        console.log('开始处理行数据:', rowData)
+        const {
+          districtName,
+          buildingName,
+          unitName,
+          roomNumber,
+          ownerNames,
+          ownerMobiles,
+          ownerIdNumbers,
+          area,
+          type,
+          houseNumber
+        } = rowData
 
-      // 1. 处理小区
-      const district = await this.getOrCreateDistrict(cache, districtName)
+        // 1. 处理小区
+        const district = await this.getOrCreateDistrict(cache, districtName)
+        console.log('获取到小区:', district)
 
-      // 2. 处理楼栋
-      const building = await this.getOrCreateBuilding(cache, {
-        buildingName,
-        districtId: district.id
-      })
+        // 2. 处理楼栋
+        const building = await this.getOrCreateBuilding(cache, {
+          buildingName,
+          districtId: district.id
+        })
+        console.log('获取到楼栋:', building)
 
-      // 3. 处理单元
-      const unit = await this.getOrCreateUnit(cache, {
-        unitName,
-        buildingId: building.id
-      })
+        // 3. 处理单元
+        const unit = await this.getOrCreateUnit(cache, {
+          unitName,
+          buildingId: building.id
+        })
+        console.log('获取到单元:', unit)
 
-      // 4. 验证房屋是否重复
-      await this.validateHouse({
-        districtId: district.id,
-        buildingId: building.id,
-        unitId: unit.id,
-        roomNumber
-      })
+        // 4. 验证房屋是否重复
+        await this.validateHouse({
+          districtId: district.id,
+          buildingId: building.id,
+          unitId: unit.id,
+          roomNumber
+        })
 
-      // 5. 创建房屋
-      await this.createHouse({
-        districtId: district.id,
-        buildingId: building.id,
-        unitId: unit.id,
-        roomNumber,
-        ownerNames,
-        ownerMobiles,
-        ownerIdNumbers,
-        area,
-        type,
-        houseNumber
-      })
+        // 5. 创建房屋
+        const result = await this.createHouse({
+          districtId: district.id,
+          buildingId: building.id,
+          unitId: unit.id,
+          roomNumber,
+          ownerNames,
+          ownerMobiles,
+          ownerIdNumbers,
+          area,
+          type,
+          houseNumber
+        })
+        console.log('创建房屋结果:', result)
+        return result
+      } catch (error) {
+        console.error('处理行数据失败:', error)
+        throw error
+      }
     },
 
     /** 获取或创建小区 */
     async getOrCreateDistrict(cache, districtName) {
-      let district = cache.districts.get(districtName)
-      if (!district) {
-        // 查询是否存在
-        const res = await listBuilding({ level: 1, name: districtName })
-        if (res.rows && res.rows.length > 0) {
-          district = res.rows[0]
-        } else {
-          // 创建新小区
-          const addRes = await addBuilding({ name: districtName, level: 1 })
-          if (addRes.code !== 200) {
-            throw new Error(`创建小区失败: ${addRes.msg || '未知错误'}`)
+      try {
+        console.log('处理小区:', districtName)
+        let district = cache.districts.get(districtName)
+        if (!district) {
+          // 查询是否存在
+          const res = await listBuilding({ level: 1, name: districtName })
+          console.log('查询小区结果:', res)
+          if (res.rows && res.rows.length > 0) {
+            district = res.rows[0]
+          } else {
+            // 创建新小区
+            const addRes = await addBuilding({ name: districtName, level: 1 })
+            console.log('创建小区结果:', addRes)
+            if (addRes.code !== 200) {
+              throw new Error(`创建小区失败: ${addRes.msg || '未知错误'}`)
+            }
+            // 创建成功后，重新查询获取完整的小区信息
+            const queryRes = await listBuilding({ level: 1, name: districtName })
+            if (!queryRes.rows || queryRes.rows.length === 0) {
+              throw new Error(`无法获取新创建的小区信息: ${districtName}`)
+            }
+            district = queryRes.rows[0]
           }
-          district = addRes.data
+          if (!district || !district.id) {
+            throw new Error(`小区数据无效: ${JSON.stringify(district)}`)
+          }
+          cache.districts.set(districtName, district)
         }
-        cache.districts.set(districtName, district)
+        return district
+      } catch (error) {
+        console.error('处理小区失败:', error)
+        throw new Error(`处理小区 ${districtName} 失败: ${error.message}`)
       }
-      return district
     },
 
     /** 获取或创建楼栋 */
     async getOrCreateBuilding(cache, { buildingName, districtId }) {
-      // 先查找名称匹配的楼栋
-      let building = null
-      // 查询特定小区下的楼栋
-      const res = await listBuilding({ level: 2, name: buildingName, pid: districtId })
-      if (res.rows && res.rows.length > 0) {
-        // 找到同名楼栋，检查是否属于当前小区
-        const existingBuilding = res.rows.find(b => b.pid === districtId)
-        if (existingBuilding) {
-          building = existingBuilding
-        }
-      }
+      try {
+        console.log('处理楼栋:', { buildingName, districtId })
+        // 使用复合键查找楼栋
+        const cacheKey = `${districtId}-${buildingName}`
+        let building = cache.buildings.get(cacheKey)
 
-      if (!building) {
-        // 创建新楼栋
-        const addRes = await addBuilding({
-          name: buildingName,
-          level: 2,
-          pid: districtId
-        })
-        if (addRes.code !== 200) {
-          throw new Error(`创建楼栋失败: ${addRes.msg || '未知错误'}`)
-        }
-        building = addRes.data
-      }
+        if (!building) {
+          // 查询特定小区下的楼栋
+          const res = await listBuilding({ level: 2, name: buildingName, pid: districtId })
+          console.log('查询楼栋结果:', res)
+          if (res.rows && res.rows.length > 0) {
+            // 找到同名楼栋，检查是否属于当前小区
+            const existingBuilding = res.rows.find(b => b.pid === districtId)
+            if (existingBuilding) {
+              building = existingBuilding
+            }
+          }
 
-      // 更新缓存
-      cache.buildings.set(`${districtId}-${buildingName}`, building)
-      return building
+          if (!building) {
+            // 创建新楼栋
+            const addRes = await addBuilding({
+              name: buildingName,
+              level: 2,
+              pid: districtId
+            })
+            console.log('创建楼栋结果:', addRes)
+            if (addRes.code !== 200) {
+              throw new Error(`创建楼栋失败: ${addRes.msg || '未知错误'}`)
+            }
+            // 创建成功后，重新查询获取完整的楼栋信息
+            const queryRes = await listBuilding({ level: 2, name: buildingName, pid: districtId })
+            console.log('重新查询楼栋结果:', queryRes)
+            if (!queryRes.rows || queryRes.rows.length === 0) {
+              throw new Error(`无法获取新创建的楼栋信息: ${buildingName}`)
+            }
+            building = queryRes.rows[0]
+          }
+
+          if (!building || !building.id) {
+            throw new Error(`楼栋数据无效: ${JSON.stringify(building)}`)
+          }
+          // 更新缓存
+          cache.buildings.set(cacheKey, building)
+        }
+
+        return building
+      } catch (error) {
+        console.error('处理楼栋失败:', error)
+        throw new Error(`处理楼栋 ${buildingName} 失败: ${error.message}`)
+      }
     },
 
     /** 获取或创建单元 */
     async getOrCreateUnit(cache, { unitName, buildingId }) {
-      // 先查找名称匹配的单元
-      let unit = null
-      // 查询特定楼栋下的单元
-      const res = await listBuilding({ level: 3, name: unitName, pid: buildingId })
-      if (res.rows && res.rows.length > 0) {
-        // 找到同名单元，检查是否属于当前楼栋
-        const existingUnit = res.rows.find(u => u.pid === buildingId)
-        if (existingUnit) {
-          unit = existingUnit
-        }
-      }
+      try {
+        console.log('处理单元:', { unitName, buildingId })
+        // 使用复合键查找单元
+        const cacheKey = `${buildingId}-${unitName}`
+        let unit = cache.units.get(cacheKey)
 
-      if (!unit) {
-        // 创建新单元
-        const addRes = await addBuilding({
-          name: unitName,
-          level: 3,
-          pid: buildingId
-        })
-        if (addRes.code !== 200) {
-          throw new Error(`创建单元失败: ${addRes.msg || '未知错误'}`)
-        }
-        unit = addRes.data
-      }
+        if (!unit) {
+          // 查询特定楼栋下的单元
+          const res = await listBuilding({ level: 3, name: unitName, pid: buildingId })
+          console.log('查询单元结果:', res)
+          if (res.rows && res.rows.length > 0) {
+            // 找到同名单元，检查是否属于当前楼栋
+            const existingUnit = res.rows.find(u => u.pid === buildingId)
+            if (existingUnit) {
+              unit = existingUnit
+            }
+          }
 
-      // 更新缓存
-      cache.units.set(`${buildingId}-${unitName}`, unit)
-      return unit
+          if (!unit) {
+            // 创建新单元
+            const addRes = await addBuilding({
+              name: unitName,
+              level: 3,
+              pid: buildingId
+            })
+            console.log('创建单元结果:', addRes)
+            if (addRes.code !== 200) {
+              throw new Error(`创建单元失败: ${addRes.msg || '未知错误'}`)
+            }
+            // 创建成功后，重新查询获取完整的单元信息
+            const queryRes = await listBuilding({ level: 3, name: unitName, pid: buildingId })
+            console.log('重新查询单元结果:', queryRes)
+            if (!queryRes.rows || queryRes.rows.length === 0) {
+              throw new Error(`无法获取新创建的单元信息: ${unitName}`)
+            }
+            unit = queryRes.rows[0]
+          }
+
+          if (!unit || !unit.id) {
+            throw new Error(`单元数据无效: ${JSON.stringify(unit)}`)
+          }
+          // 更新缓存
+          cache.units.set(cacheKey, unit)
+        }
+
+        return unit
+      } catch (error) {
+        console.error('处理单元失败:', error)
+        throw new Error(`处理单元 ${unitName} 失败: ${error.message}`)
+      }
     },
 
     /** 验证房屋是否重复 */
@@ -1150,7 +1237,6 @@ export default {
 
     // 文件上传成功处理
     handleFileSuccess(response, file, fileList) {
-      this.upload.open = false
       this.upload.isUploading = false
       this.$refs.upload.clearFiles()
       this.$alert(response.msg || '导入成功', '导入结果', { type: response.code === 200 ? 'success' : 'error' })
@@ -1159,6 +1245,7 @@ export default {
 
     // 提交上传文件
     submitFileForm() {
+      this.upload.open = false // 立即关闭对话框
       this.$refs.upload.submit()
     },
 
@@ -1224,5 +1311,20 @@ export default {
 
 .warning {
   color: #E6A23C;
+}
+
+/* 导入进度通知样式 */
+:deep(.import-progress-notification) {
+  min-width: 300px;
+}
+
+:deep(.import-error-dialog) {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+:deep(.import-error-dialog .el-message-box__content) {
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style>
