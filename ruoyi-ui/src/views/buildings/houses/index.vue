@@ -792,6 +792,316 @@ export default {
       })
     },
 
+    /** 验证Excel数据格式 */
+    validateExcelData(data) {
+      if (!data || data.length === 0) return false
+
+      for (const row of data) {
+        // 检查必填字段是否存在且不为空
+        if (!row || row.length < 4) return false
+
+        // 检查必填字段：小区、楼栋、单元、房号
+        const [districtName, buildingName, unitName, roomNumber] = row
+        if (!districtName?.toString().trim() ||
+            !buildingName?.toString().trim() ||
+            !unitName?.toString().trim() ||
+            !roomNumber?.toString().trim()) {
+          return false
+        }
+      }
+      return true
+    },
+
+    /** 处理导入数据 */
+    async processImportData(data) {
+      try {
+        this.upload.isUploading = true
+
+        // 显示进度条
+        const loadingInstance = this.$loading({
+          text: '正在导入数据，请稍候...',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        })
+
+        // 初始化缓存映射
+        const cache = {
+          districts: new Map(),
+          buildings: new Map(),
+          units: new Map()
+        }
+
+        // 预加载所有现有数据
+        await this.preloadExistingData(cache)
+
+        // 批量处理每一行数据
+        const total = data.length
+        let success = 0
+        let failed = 0
+        const errors = []
+
+        for (let i = 0; i < data.length; i++) {
+          try {
+            // 更新进度条文本
+            loadingInstance.text = `正在导入第 ${i + 1}/${total} 条数据...`
+
+            const row = data[i]
+            // 确保所有字段都转换为字符串并去除空格
+            const [
+              districtName = '',
+              buildingName = '',
+              unitName = '',
+              roomNumber = '',
+              ownerNames = '',
+              ownerMobiles = '',
+              ownerIdNumbers = '',
+              area = '',
+              type = '',
+              houseNumber = ''
+            ] = row.map(item => (item ?? '').toString().trim())
+
+            // 处理一行数据
+            await this.processRow({
+              cache,
+              rowData: {
+                districtName,
+                buildingName,
+                unitName,
+                roomNumber,
+                ownerNames,
+                ownerMobiles,
+                ownerIdNumbers,
+                area,
+                type,
+                houseNumber
+              }
+            })
+            success++
+          } catch (error) {
+            failed++
+            const rowData = data[i]
+            errors.push(`第${i + 1}行: ${rowData[0] || ''}-${rowData[1] || ''}-${rowData[2] || ''}-${rowData[3] || ''}, 错误: ${error.message}`)
+            console.error('处理行数据失败:', error)
+            continue // 继续处理下一行
+          }
+        }
+
+        // 关闭进度条
+        loadingInstance.close()
+
+        // 完成导入，显示结果
+        this.upload.isUploading = false
+        if (failed === 0) {
+          this.$modal.msgSuccess(`导入成功，共处理 ${total} 条数据`)
+        } else {
+          this.$modal.warning({
+            title: '导入结果',
+            message: h => {
+              return h('div', null, [
+                h('p', null, `导入完成，成功 ${success} 条，失败 ${failed} 条`),
+                h('div', { style: 'max-height: 300px; overflow-y: auto;' },
+                  errors.map(error => h('p', { style: 'color: #F56C6C; margin: 5px 0;' }, error))
+                )
+              ])
+            },
+            dangerouslyUseHTMLString: true,
+            customClass: 'import-result-dialog'
+          })
+        }
+
+        this.upload.open = false
+        this.getList() // 刷新列表
+      } catch (error) {
+        this.upload.isUploading = false
+        this.$modal.msgError('导入失败：' + (error.message || '未知错误'))
+        console.error('导入总体失败:', error)
+      }
+    },
+
+    /** 预加载现有数据 */
+    async preloadExistingData(cache) {
+      const [districts, buildings, units] = await Promise.all([
+        listBuilding({ level: 1 }),
+        listBuilding({ level: 2 }),
+        listBuilding({ level: 3 })
+      ])
+
+      // 初始化缓存
+      districts.rows.forEach(d => cache.districts.set(d.name, d))
+      buildings.rows.forEach(b => cache.buildings.set(b.name, b))
+      units.rows.forEach(u => cache.units.set(u.name, u))
+
+      return cache
+    },
+
+    /** 处理单行数据 */
+    async processRow({ cache, rowData }) {
+      const {
+        districtName,
+        buildingName,
+        unitName,
+        roomNumber,
+        ownerNames,
+        ownerMobiles,
+        ownerIdNumbers,
+        area,
+        type,
+        houseNumber
+      } = rowData
+
+      // 1. 处理小区
+      const district = await this.getOrCreateDistrict(cache, districtName)
+
+      // 2. 处理楼栋
+      const building = await this.getOrCreateBuilding(cache, {
+        buildingName,
+        districtId: district.id
+      })
+
+      // 3. 处理单元
+      const unit = await this.getOrCreateUnit(cache, {
+        unitName,
+        buildingId: building.id
+      })
+
+      // 4. 验证房屋是否重复
+      await this.validateHouse({
+        districtId: district.id,
+        buildingId: building.id,
+        unitId: unit.id,
+        roomNumber
+      })
+
+      // 5. 创建房屋
+      await this.createHouse({
+        districtId: district.id,
+        buildingId: building.id,
+        unitId: unit.id,
+        roomNumber,
+        ownerNames,
+        ownerMobiles,
+        ownerIdNumbers,
+        area,
+        type,
+        houseNumber
+      })
+    },
+
+    /** 获取或创建小区 */
+    async getOrCreateDistrict(cache, districtName) {
+      let district = cache.districts.get(districtName)
+      if (!district) {
+        // 查询是否存在
+        const res = await listBuilding({ level: 1, name: districtName })
+        if (res.rows && res.rows.length > 0) {
+          district = res.rows[0]
+        } else {
+          // 创建新小区
+          const addRes = await addBuilding({ name: districtName, level: 1 })
+          if (addRes.code !== 200) {
+            throw new Error(`创建小区失败: ${addRes.msg || '未知错误'}`)
+          }
+          district = addRes.data
+        }
+        cache.districts.set(districtName, district)
+      }
+      return district
+    },
+
+    /** 获取或创建楼栋 */
+    async getOrCreateBuilding(cache, { buildingName, districtId }) {
+      // 先查找名称匹配的楼栋
+      let building = null
+      // 查询特定小区下的楼栋
+      const res = await listBuilding({ level: 2, name: buildingName, pid: districtId })
+      if (res.rows && res.rows.length > 0) {
+        // 找到同名楼栋，检查是否属于当前小区
+        const existingBuilding = res.rows.find(b => b.pid === districtId)
+        if (existingBuilding) {
+          building = existingBuilding
+        }
+      }
+
+      if (!building) {
+        // 创建新楼栋
+        const addRes = await addBuilding({
+          name: buildingName,
+          level: 2,
+          pid: districtId
+        })
+        if (addRes.code !== 200) {
+          throw new Error(`创建楼栋失败: ${addRes.msg || '未知错误'}`)
+        }
+        building = addRes.data
+      }
+
+      // 更新缓存
+      cache.buildings.set(`${districtId}-${buildingName}`, building)
+      return building
+    },
+
+    /** 获取或创建单元 */
+    async getOrCreateUnit(cache, { unitName, buildingId }) {
+      // 先查找名称匹配的单元
+      let unit = null
+      // 查询特定楼栋下的单元
+      const res = await listBuilding({ level: 3, name: unitName, pid: buildingId })
+      if (res.rows && res.rows.length > 0) {
+        // 找到同名单元，检查是否属于当前楼栋
+        const existingUnit = res.rows.find(u => u.pid === buildingId)
+        if (existingUnit) {
+          unit = existingUnit
+        }
+      }
+
+      if (!unit) {
+        // 创建新单元
+        const addRes = await addBuilding({
+          name: unitName,
+          level: 3,
+          pid: buildingId
+        })
+        if (addRes.code !== 200) {
+          throw new Error(`创建单元失败: ${addRes.msg || '未知错误'}`)
+        }
+        unit = addRes.data
+      }
+
+      // 更新缓存
+      cache.units.set(`${buildingId}-${unitName}`, unit)
+      return unit
+    },
+
+    /** 验证房屋是否重复 */
+    async validateHouse({ districtId, buildingId, unitId, roomNumber }) {
+      const existingHouses = await listHouses({
+        districtId,
+        buildingId,
+        unitId,
+        roomNumber
+      })
+
+      const hasDuplicate = existingHouses.rows.some(house =>
+        house.roomNumber === roomNumber &&
+        house.districtId === districtId &&
+        house.buildingId === buildingId &&
+        house.unitId === unitId
+      )
+
+      if (hasDuplicate) {
+        throw new Error('该单元下已存在相同房号')
+      }
+    },
+
+    /** 创建房屋 */
+    async createHouse(houseData) {
+      const addHouseRes = await addHouses(houseData)
+      if (addHouseRes.code !== 200) {
+        throw new Error(`创建房屋失败: ${addHouseRes.msg || '未知错误'}`)
+      }
+      return addHouseRes.data
+    },
+
     /** 文件上传前的处理 */
     beforeUpload(file) {
       const isExcel = /\.(xlsx|xls)$/i.test(file.name)
@@ -806,10 +1116,14 @@ export default {
           const data = new Uint8Array(e.target.result)
           const workbook = XLSX.read(data, { type: 'array' })
           const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+            header: 1,
+            raw: false, // 将所有值转换为字符串
+            defval: '' // 空单元格的默认值
+          })
 
           // 移除表头
-          const headers = jsonData.shift()
+          jsonData.shift()
 
           // 验证数据格式
           if (!this.validateExcelData(jsonData)) {
@@ -827,187 +1141,6 @@ export default {
 
       reader.readAsArrayBuffer(file)
       return false // 阻止自动上传
-    },
-
-    /** 验证Excel数据格式 */
-    validateExcelData(data) {
-      if (!data || data.length === 0) return false
-
-      for (const row of data) {
-        if (!row[0] || !row[1] || !row[2] || !row[3]) {
-          return false // 小区、楼栋、单元、房号是必填项
-        }
-      }
-      return true
-    },
-
-    /** 处理导入数据 */
-    async processImportData(data) {
-      try {
-        this.upload.isUploading = true
-
-        // 1. 先获取所有现有的小区、楼栋、单元数据
-        const [districts, buildings, units] = await Promise.all([
-          listBuilding({ level: 1 }),
-          listBuilding({ level: 2 }),
-          listBuilding({ level: 3 })
-        ])
-
-        console.log('现有数据:', {
-          districts: districts.rows,
-          buildings: buildings.rows,
-          units: units.rows
-        })
-
-        const districtMap = new Map(districts.rows.map(d => [d.name, d]))
-        const buildingMap = new Map(buildings.rows.map(b => [b.name, b]))
-        const unitMap = new Map(units.rows.map(u => [u.name, u]))
-
-        // 2. 处理每一行数据
-        for (const row of data) {
-          const [districtName, buildingName, unitName, roomNumber, ownerNames, ownerMobiles, ownerIdNumbers, area, type, houseNumber] = row
-
-          try {
-            console.log('处理数据行:', { districtName, buildingName, unitName, roomNumber })
-
-            // 2.1 处理小区
-            let district = districtMap.get(districtName)
-            if (!district) {
-              const res = await listBuilding({ level: 1, name: districtName })
-              console.log('查询小区结果:', res)
-              if (res.rows && res.rows.length > 0) {
-                district = res.rows[0]
-              } else {
-                const addRes = await addBuilding({ name: districtName, level: 1 })
-                console.log('添加小区结果:', addRes)
-                if (addRes.code !== 200) {
-                  throw new Error(`添加小区失败: ${addRes.msg || '未知错误'}`)
-                }
-                district = addRes.data
-                if (!district || !district.id) {
-                  throw new Error(`小区数据无效: ${JSON.stringify(district)}`)
-                }
-              }
-              districtMap.set(districtName, district)
-            }
-            console.log('当前小区:', district)
-
-            // 2.2 处理楼栋
-            let building = buildingMap.get(buildingName)
-            if (!building) {
-              const res = await listBuilding({ level: 2, name: buildingName, pid: district.id })
-              console.log('查询楼栋结果:', res)
-              if (res.rows && res.rows.length > 0) {
-                building = res.rows[0]
-              } else {
-                const addRes = await addBuilding({
-                  name: buildingName,
-                  level: 2,
-                  pid: district.id
-                })
-                console.log('添加楼栋结果:', addRes)
-                if (addRes.code !== 200) {
-                  throw new Error(`添加楼栋失败: ${addRes.msg || '未知错误'}`)
-                }
-                building = addRes.data
-                if (!building || !building.id) {
-                  throw new Error(`楼栋数据无效: ${JSON.stringify(building)}`)
-                }
-              }
-              buildingMap.set(buildingName, building)
-            }
-            console.log('当前楼栋:', building)
-
-            // 2.3 处理单元
-            let unit = unitMap.get(unitName)
-            if (!unit) {
-              const res = await listBuilding({ level: 3, name: unitName, pid: building.id })
-              console.log('查询单元结果:', res)
-              if (res.rows && res.rows.length > 0) {
-                unit = res.rows[0]
-              } else {
-                const addRes = await addBuilding({
-                  name: unitName,
-                  level: 3,
-                  pid: building.id
-                })
-                console.log('添加单元结果:', addRes)
-                if (addRes.code !== 200) {
-                  throw new Error(`添加单元失败: ${addRes.msg || '未知错误'}`)
-                }
-                unit = addRes.data
-                if (!unit || !unit.id) {
-                  throw new Error(`单元数据无效: ${JSON.stringify(unit)}`)
-                }
-              }
-              unitMap.set(unitName, unit)
-            }
-            console.log('当前单元:', unit)
-
-            // 2.4 检查房号是否已存在于同一单元
-            const existingHouses = await listHouses({
-              districtId: district.id,
-              buildingId: building.id,
-              unitId: unit.id,
-              roomNumber: roomNumber
-            })
-
-            // 检查是否存在完全相同的房号
-            const hasDuplicate = existingHouses.rows.some(house =>
-              house.roomNumber === roomNumber &&
-              house.districtId === district.id &&
-              house.buildingId === building.id &&
-              house.unitId === unit.id
-            )
-
-            if (hasDuplicate) {
-              throw new Error(`该单元下已存在相同房号: ${districtName}-${buildingName}-${unitName}-${roomNumber}`)
-            }
-
-            // 2.5 添加房屋信息
-            const houseData = {
-              districtId: district.id,
-              buildingId: building.id,
-              unitId: unit.id,
-              roomNumber,
-              ownerNames,
-              ownerMobiles,
-              ownerIdNumbers,
-              area,
-              type,
-              houseNumber
-            }
-            console.log('准备添加房屋:', houseData)
-            const addHouseRes = await addHouses(houseData)
-            if (addHouseRes.code !== 200) {
-              throw new Error(`添加房屋失败: ${addHouseRes.msg || '未知错误'}`)
-            }
-
-            // 更新本地映射以避免重复添加
-            if (!districtMap.has(districtName)) {
-              districtMap.set(districtName, district)
-            }
-            if (!buildingMap.has(buildingName)) {
-              buildingMap.set(buildingName, building)
-            }
-            if (!unitMap.has(unitName)) {
-              unitMap.set(unitName, unit)
-            }
-          } catch (error) {
-            console.error('Error processing row:', row, error)
-            throw new Error(`处理数据行失败: ${districtName}-${buildingName}-${unitName}-${roomNumber}, ${error.message}`)
-          }
-        }
-
-        this.upload.isUploading = false
-        this.$modal.msgSuccess('导入成功')
-        this.upload.open = false
-        this.getList()
-      } catch (error) {
-        this.upload.isUploading = false
-        this.$modal.msgError('导入失败：' + (error.message || '未知错误'))
-        console.error('Import error:', error)
-      }
     },
 
     // 文件上传中处理
