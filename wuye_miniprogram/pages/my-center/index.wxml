@@ -23,7 +23,7 @@
 </view>
 
 <van-cell-group inset border="{{false}}">
-  <van-cell size="large" title="业主信息" url="{{isLoggedIn ? '/pages/personal-info/index' : ''}}" is-link bindtap="{{isLoggedIn ? '' : 'handleLogin'}}" />
-  <van-cell size="large" title="我的房屋" url="{{isLoggedIn ? '/pages/my-house/index' : ''}}" is-link bindtap="{{isLoggedIn ? '' : 'handleLogin'}}" />
+  <van-cell size="large" title="业主信息" url="{{isLoggedIn ? '/pages/personal-info/index' : ''}}" is-link bindtap="handleLogin" data-title="业主信息" />
+  <van-cell size="large" title="我的房屋" is-link bindtap="handleHouseClick" data-title="我的房屋" />
 </van-cell-group>
 

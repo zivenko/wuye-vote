@@ -7,7 +7,22 @@ Page({
    */
   data: {
     isLoggedIn: false,
-    userInfo: null
+    userInfo: null,
+    checkUserInfoComplete() {
+      const userInfo = this.data.userInfo;
+      if (!userInfo) return false;
+      
+      // 使用严格的空值检查，确保字段不为null且不为空字符串
+      return userInfo.name !== null && 
+             userInfo.name !== undefined && 
+             userInfo.name !== '' &&
+             userInfo.idNumber !== null && 
+             userInfo.idNumber !== undefined && 
+             userInfo.idNumber !== '' &&
+             userInfo.mobile !== null && 
+             userInfo.mobile !== undefined && 
+             userInfo.mobile !== '';
+    }
   },
 
   /**
@@ -171,12 +186,35 @@ Page({
   /**
    * 点击需要登录的项目时处理
    */
-  handleLogin() {
+  handleLogin(e) {
     if (!this.data.isLoggedIn) {
       wx.showToast({
         title: '请先登录',
         icon: 'none'
       });
+      return;
+    }
+
+    // 获取点击的cell的title
+    const title = e.currentTarget.dataset.title;
+    
+    // 如果是"我的房屋"，需要检查用户信息是否完善
+    if (title === '我的房屋') {
+      if (!this.checkUserInfoComplete()) {
+        wx.showModal({
+          title: '提示',
+          content: '请先完善个人信息（姓名、身份证号、手机号）',
+          confirmText: '去完善',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/personal-info/index'
+              });
+            }
+          }
+        });
+        return;
+      }
     }
   },
 
@@ -309,5 +347,56 @@ Page({
         });
       }
     });
+  },
+
+  /**
+   * 处理"我的房屋"点击事件
+   */
+  async handleHouseClick() {
+    // 检查是否登录
+    if (!this.data.isLoggedIn) {
+      wx.showToast({
+        title: '请先登录',
+        icon: 'none'
+      });
+      return;
+    }
+
+    try {
+      // 调用接口获取最新的用户信息
+      const res = await userApi.getUserInfo();
+      if (res.code !== 200) {
+        throw new Error(res.msg || '获取用户信息失败');
+      }
+
+      const userInfo = res.data;
+      // 检查必要信息是否完善
+      if (!userInfo || !userInfo.name || !userInfo.idNumber || !userInfo.mobile) {
+        wx.showModal({
+          title: '提示',
+          content: '请先完善个人信息（姓名、身份证号、手机号）',
+          confirmText: '去完善',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: '/pages/personal-info/index'
+              });
+            }
+          }
+        });
+        return;
+      }
+
+      // 如果信息完善，跳转到我的房屋页面
+      wx.navigateTo({
+        url: '/pages/my-house/index'
+      });
+    } catch (error) {
+      console.error('验证用户信息失败:', error);
+      wx.showToast({
+        title: error.message || '系统错误',
+        icon: 'none'
+      });
+    }
   },
 })

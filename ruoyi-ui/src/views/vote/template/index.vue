@@ -142,7 +142,7 @@
           <el-input v-model="form.title" placeholder="请输入投票标题" />
         </el-form-item>
         <el-form-item label="投票描述" prop="description">
-          <el-input v-model="form.description" type="textarea" placeholder="请输入投票描述" />
+          <editor v-model="form.description" :min-height="192" />
         </el-form-item>
         <el-form-item label="投票选项" prop="choices">
           <div v-for="(choice, index) in choicesList" :key="index" style="display: flex; align-items: center; margin-bottom: 10px;">
@@ -154,13 +154,26 @@
           <el-button type="primary" icon="el-icon-plus" style="margin-top: 10px;" @click="addChoice">添加选项</el-button>
         </el-form-item>
         <el-form-item label="投票次数" prop="voteTimes">
-          <el-input-number v-model="form.voteTimes" :min="1" :max="10" label="每人可投票次数" />
-        </el-form-item>
-        <el-form-item label="投票规则" prop="rule">
-          <el-input v-model="form.rule" type="textarea" placeholder="请输入投票规则" />
+          <el-input-number
+            v-model="form.voteTimes"
+            :min="1"
+            :max="choicesList.length"
+            label="每人可投票次数"
+            :disabled="choicesList.length < 2"
+          />
         </el-form-item>
         <el-form-item label="所属小区" prop="communityIds">
-          <el-select v-model="form.communityIds" multiple placeholder="请选择小区" style="width: 100%;">
+          <el-select
+            v-model="form.communityIds"
+            filterable
+            remote
+            :remote-method="remoteSearch"
+            :loading="communityLoading"
+            placeholder="请输入小区名称搜索"
+            style="width: 100%;"
+            :clearable="true"
+            @clear="loadCommunityOptions"
+          >
             <el-option
               v-for="item in communityOptions"
               :key="item.id"
@@ -169,16 +182,16 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="投票时间" prop="dateRange">
+        <el-form-item label="投票时间" prop="startTime">
           <el-date-picker
             v-model="dateRange"
-            type="datetimerange"
+            type="daterange"
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            :default-time="['00:00:00', '23:59:59']"
+            value-format="yyyy-MM-dd"
             style="width: 100%;"
+            @change="handleDateRangeChange"
           />
         </el-form-item>
       </el-form>
@@ -206,6 +219,8 @@ export default {
     return {
       // 遮罩层
       loading: true,
+      // 小区搜索loading
+      communityLoading: false,
       // 选中数组
       ids: [],
       // 非单个禁用
@@ -234,8 +249,7 @@ export default {
         description: null,
         choices: null,
         voteTimes: 1,
-        rule: null,
-        communityIds: [],
+        communityIds: null,
         startTime: null,
         endTime: null
       },
@@ -256,6 +270,9 @@ export default {
         ],
         communityIds: [
           { required: true, message: '请选择所属小区', trigger: 'change' }
+        ],
+        startTime: [
+          { required: true, message: '请选择投票时间范围', trigger: 'change' }
         ]
       },
       // 选项列表
@@ -283,9 +300,26 @@ export default {
     },
     /** 加载小区数据 */
     loadCommunityOptions() {
+      this.communityLoading = true
       listBuilding({ level: 1 }).then(response => {
         this.communityOptions = response.rows || []
+        this.communityLoading = false
       })
+    },
+    /** 远程搜索小区 */
+    remoteSearch(query) {
+      if (query !== '') {
+        this.communityLoading = true
+        listBuilding({
+          level: 1,
+          name: query
+        }).then(response => {
+          this.communityOptions = response.rows || []
+          this.communityLoading = false
+        })
+      } else {
+        this.loadCommunityOptions()
+      }
     },
     /** 取消按钮 */
     cancel() {
@@ -300,8 +334,7 @@ export default {
         description: null,
         choices: null,
         voteTimes: 1,
-        rule: null,
-        communityIds: [],
+        communityIds: null,
         startTime: null,
         endTime: null
       }
@@ -363,13 +396,14 @@ export default {
         }
         // 处理小区ID
         if (this.form.communityIds) {
-          this.form.communityIds = this.form.communityIds.split(',').map(Number)
-        } else {
-          this.form.communityIds = []
+          this.form.communityIds = this.form.communityIds.split(',').map(Number)[0]
         }
         // 处理时间
         if (this.form.startTime && this.form.endTime) {
-          this.dateRange = [this.parseTime(this.form.startTime), this.parseTime(this.form.endTime)]
+          this.dateRange = [
+            this.parseTime(new Date(this.form.startTime), '{y}-{m}-{d}'),
+            this.parseTime(new Date(this.form.endTime), '{y}-{m}-{d}')
+          ]
         }
         this.open = true
         this.title = '修改投票模板'
@@ -396,7 +430,10 @@ export default {
         }
         // 处理时间
         if (this.form.startTime && this.form.endTime) {
-          this.dateRange = [this.parseTime(this.form.startTime), this.parseTime(this.form.endTime)]
+          this.dateRange = [
+            this.parseTime(new Date(this.form.startTime), '{y}-{m}-{d}'),
+            this.parseTime(new Date(this.form.endTime), '{y}-{m}-{d}')
+          ]
         }
         this.open = true
         this.title = '查看投票模板'
@@ -462,12 +499,6 @@ export default {
     submitForm() {
       this.$refs['form'].validate(valid => {
         if (valid) {
-          // 验证时间范围
-          if (!this.dateRange || this.dateRange.length !== 2) {
-            this.$message.error('请选择投票时间范围')
-            return
-          }
-
           // 验证选项内容
           if (!this.choicesList.every(choice => choice.content.trim())) {
             this.$message.error('请填写所有选项内容')
@@ -482,13 +513,11 @@ export default {
 
           const data = {
             ...this.form,
-            choices: JSON.stringify(choices),
-            startTime: this.dateRange[0],
-            endTime: this.dateRange[1]
+            choices: JSON.stringify(choices)
           }
 
-          if (this.form.communityIds && this.form.communityIds.length > 0) {
-            data.communityIds = this.form.communityIds.join(',')
+          if (this.form.communityIds) {
+            data.communityIds = this.form.communityIds.toString()
           }
 
           if (this.form.templateId != null) {
@@ -518,6 +547,10 @@ export default {
         return
       }
       this.choicesList.push({ content: '' })
+      // 如果当前投票次数大于选项数量，则自动调整为选项数量
+      if (this.form.voteTimes > this.choicesList.length) {
+        this.form.voteTimes = this.choicesList.length
+      }
     },
     // 删除选项
     removeChoice(index) {
@@ -525,6 +558,10 @@ export default {
         return
       }
       this.choicesList.splice(index, 1)
+      // 如果当前投票次数大于选项数量，则自动调整为选项数量
+      if (this.form.voteTimes > this.choicesList.length) {
+        this.form.voteTimes = this.choicesList.length
+      }
     },
     /** 复制按钮操作 */
     handleCopy(row) {
@@ -556,19 +593,29 @@ export default {
 
         // 处理小区ID
         if (this.form.communityIds) {
-          this.form.communityIds = this.form.communityIds.split(',').map(Number)
-        } else {
-          this.form.communityIds = []
+          this.form.communityIds = this.form.communityIds.split(',').map(Number)[0]
         }
 
         // 处理时间
         if (this.form.startTime && this.form.endTime) {
-          this.dateRange = [this.parseTime(this.form.startTime), this.parseTime(this.form.endTime)]
+          this.dateRange = [
+            this.parseTime(new Date(this.form.startTime), '{y}-{m}-{d}'),
+            this.parseTime(new Date(this.form.endTime), '{y}-{m}-{d}')
+          ]
         }
 
         this.open = true
         this.title = '添加投票模板'
       })
+    },
+    handleDateRangeChange(val) {
+      if (val) {
+        this.form.startTime = val[0] + ' 00:00:00'
+        this.form.endTime = val[1] + ' 23:59:59'
+      } else {
+        this.form.startTime = null
+        this.form.endTime = null
+      }
     }
   }
 }
